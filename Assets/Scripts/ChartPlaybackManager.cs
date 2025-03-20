@@ -28,6 +28,9 @@ public class ChartPlaybackManager : MonoBehaviour
             }
         }
 
+        // 🎯 オーディオの再生開始イベントをリッスン
+        AudioManager.Instance.OnAudioPlaybackStarted += OnAudioPlaybackStarted;
+
         StartCoroutine(CountdownRoutine()); // 🎯 カウントダウン開始
     }
 
@@ -47,9 +50,11 @@ public class ChartPlaybackManager : MonoBehaviour
         {
             countdownText.text = "Go!";
         }
-        Debug.Log("🚀 カウントダウン終了！オーディオと譜面を開始");
+        Debug.Log("🚀 カウントダウン終了！オーディオを再生");
 
-        StartPlayback();
+        // 🎯 オーディオを再生 (譜面は `OnAudioPlaybackStarted` で処理)
+        AudioManager.Instance.PlayAudioNow();
+
         yield return new WaitForSeconds(1.0f); // "Go!" の表示時間
         if (countdownText != null)
         {
@@ -57,16 +62,20 @@ public class ChartPlaybackManager : MonoBehaviour
         }
     }
 
-    void StartPlayback()
+    // 🎯 オーディオの再生が開始されたときに呼ばれる
+    void OnAudioPlaybackStarted()
     {
-        // 🎯 正確な時間をセット
-        double playbackStartTime = AudioSettings.dspTime;
+        double audioStartTime = AudioSettings.dspTime; // 🎯 オーディオ再生の正確な時間
 
-        // 🎯 オーディオを再生
-        AudioManager.Instance.PlayAudioNow();
+        // 🎯 Chart Delay を考慮した譜面の再生開始時間
+        float chartDelay = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
+        double adjustedStartTime = audioStartTime + chartDelay;
 
-        // 🎯 譜面の開始時間をセット
-        notesGenerator.StartPlayback(); // ✅ `StartPlayback()` に変更
+        Debug.Log($"🎯 オーディオの再生が開始: {audioStartTime:F3} sec");
+        Debug.Log($"⏳ Chart Delay: {chartDelay} 秒 → 譜面の開始時間: {adjustedStartTime:F3} sec");
 
+        // 🎯 NotesGenerator に再生開始時間を設定
+        notesGenerator.SetStartTime(adjustedStartTime);
+        notesGenerator.StartPlayback();
     }
 }

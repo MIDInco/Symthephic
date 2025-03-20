@@ -127,15 +127,19 @@ IEnumerator LoadMidiFileAsync()
     GenerateNotes(midiLoad);
     Debug.Log($"✅ ノート生成完了！");
 
-    yield return new WaitForSeconds(totalChartDelay); // 🎯 **譜面の再生遅延**
+    // 🎯 **オーディオの開始時間は変更しない**
+    double audioStartTime = AudioSettings.dspTime;
 
- // 🎯 **オーディオの再生タイミングを確実にする**
-    startTime = AudioSettings.dspTime;
-    Debug.Log($"⏳ 譜面とオーディオを {startTime:F3} sec に同時再生");
+    // 🎯 **譜面の開始時間を Noteoffset の Chart Delay で遅らせる**
+    float chartDelayOffset = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
+    startTime = audioStartTime + chartDelayOffset;
 
-    isReady = false;
-    Debug.Log("✅ 譜面の再生開始！");
+    Debug.Log($"⏳ 譜面の開始時間を {chartDelayOffset} 秒遅らせる (startTime = {startTime:F3})");
+
+    isReady = false; // 🎯 譜面再生フラグをON
 }
+//メモメモメモ　Trueかもしれない。
+
 
 
 
@@ -236,5 +240,11 @@ void GenerateNotes(MidiLoad midiLoad)
         isReady = true; // 🎯 ここで譜面の再生を開始
         Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
     }
+
+    public void SetStartTime(double time)
+{
+    startTime = time;
+    Debug.Log($"🎵 NotesGenerator: startTime を {startTime:F3} に設定");
+}
 
     }

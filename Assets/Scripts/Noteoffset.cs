@@ -4,9 +4,9 @@ using UnityEngine;
 public class Noteoffset : MonoBehaviour
 {
     public static Noteoffset Instance;
-
-    public float NoteoffsetValue = 0.0f; // 🎯 デフォルトのオフセット
-    private float detectedBPM = 120f; // 🎯 取得した BPM を格納
+    public float NoteoffsetValue = 0.0f; // ノートのオフセット
+    private float detectedBPM = 120f; // 取得した BPM
+    public float chartDelay = 0.0f; // 🎯 Chart Delay を追加
 
     private void Awake()
     {
@@ -21,25 +21,27 @@ public class Noteoffset : MonoBehaviour
         }
     }
 
-    // 🎯 NotesGenerator から取得した BPM を保存
     public void UpdateBPM(float bpm)
     {
-        if (bpm > 0) // 🎯 負の BPM を防ぐ
+        if (bpm > 0)
         {
             detectedBPM = bpm;
             Debug.Log($"[Noteoffset] BPM Updated: {detectedBPM}");
         }
     }
 
-    // 🎯 現在の BPM に応じたオフセットを計算
     public float GetOffset()
     {
-        return NoteoffsetValue * (120f / detectedBPM); // 🎯 基準 BPM 120 で補正
+        return NoteoffsetValue * (120f / detectedBPM);
     }
 
-    // 🎯 BPM を引数にしたオフセット計算メソッド（新規追加）
     public float GetOffsetForBPM(float bpm)
     {
         return NoteoffsetValue * (120f / bpm);
+    }
+
+    public float GetChartDelay()
+    {
+        return chartDelay; // 🎯 Chart Delay を返す
     }
 }
