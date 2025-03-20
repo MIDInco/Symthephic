@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<MidiSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SoundFonts>
+    <SoundFontInfo>
+      <Name>GeneralUser-GS</Name>
+      <PatchCount>287</PatchCount>
+      <WaveCount>920</WaveCount>
+      <WaveSize>36724496</WaveSize>
+      <SF2Path>C:/Users/Symthephic/AppData/LocalLow/DefaultCompany/Test01\SoundFont\GeneralUser-GS.sf2</SF2Path>
+    </SoundFontInfo>
+  </SoundFonts>
+  <IndexSelectedSF>0</IndexSelectedSF>
+  <MidiFiles>
+    <string>0001_Kousaku</string>
+    <string>0002_Kousaku_Noattack</string>
+    <string>0003_Kousaku_Simple</string>
+    <string>20250319_Test_120</string>
+    <string>20250319_Test_120_noAttack</string>
+    <string>20250320_Test_90</string>
+  </MidiFiles>
+</MidiSet>
