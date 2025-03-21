@@ -21,24 +21,20 @@ void LoadAvailableSongs()
 {
     List<MPTKListItem> midiFiles = MidiPlayerGlobal.MPTK_ListMidi;
 
+    Debug.Log("🎵 MPTKに登録されているMIDIリスト:");
     foreach (var file in midiFiles)
     {
-        // songLookup に存在する場合だけ取得する
+        Debug.Log($" - {file.Label}");
+    }
+
+    foreach (var file in midiFiles)
+    {
         SongData songData = SongDatabase.GetSongData(file.Label);
-
-        // デフォルト生成された曲（＝DisplayNameがMIDIファイル名と同じ）は除外
-        if (songData.DisplayName == file.Label)
-        {
-            Debug.Log($"🛑 {file.Label} は登録されていないのでスキップ");
-            continue;
-        }
-
         SongManager.AvailableSongs.Add(songData);
     }
 
     Debug.Log($"🎵 読み込んだ曲の数: {SongManager.AvailableSongs.Count}");
 }
-
 
 
     // 🎯 楽曲リストのUIを生成
