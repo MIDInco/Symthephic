@@ -1465,7 +1465,8 @@ MonoBehaviour:
   perfectThreshold: 120
   goodThreshold: 480
   missThreshold: 480
-  earlyIgnoreThreshold: 500
+  earlyMissThreshold: 720
+  earlyIgnoreThreshold: 721
 --- !u!1 &1857447748
 GameObject:
   m_ObjectHideFlags: 0
