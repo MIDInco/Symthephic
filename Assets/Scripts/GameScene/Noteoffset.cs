@@ -44,4 +44,18 @@ public class Noteoffset : MonoBehaviour
     {
         return chartDelay; // 🎯 Chart Delay を返す
     }
+
+    // ノート補正値をゲーム内UIなどから変更できるようにする準備
+    public void SetNoteOffsetValue(float value)
+    {
+        NoteoffsetValue = value;
+        Debug.Log($"🎛 ノートオフセットが更新されました: {NoteoffsetValue}");
+    }
+
+    public float GetNoteOffsetValue()
+    {
+        return NoteoffsetValue;
+    }
+    
+
 }

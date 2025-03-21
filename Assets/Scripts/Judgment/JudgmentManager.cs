@@ -48,7 +48,10 @@ public class JudgmentManager : MonoBehaviour
         double elapsedTime = currentTime - notesGenerator.startTime;
 
         double tickDuration = (60.0 / notesGenerator.midiFilePlayer.MPTK_Tempo) / notesGenerator.TPQN;
-        long currentTick = (long)(elapsedTime / tickDuration);
+
+        // 🎯 Noteoffset による補正を反映
+        double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
+        long currentTick = (long)((elapsedTime + offsetSec) / tickDuration);
 
         NoteController bestNote = null;
         long bestTickDifference = long.MaxValue;
@@ -96,7 +99,11 @@ public class JudgmentManager : MonoBehaviour
         double currentTime = AudioSettings.dspTime;
         double elapsedTime = currentTime - notesGenerator.startTime;
         double tickDuration = (60.0 / notesGenerator.midiFilePlayer.MPTK_Tempo) / notesGenerator.TPQN;
-        long currentTick = (long)(elapsedTime / tickDuration);
+
+        // 🎯 Noteoffset による補正を反映
+        double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
+        long currentTick = (long)((elapsedTime + offsetSec) / tickDuration);
+
 
         var notes = notesGenerator.GetNoteControllers();
         for (int i = notes.Count - 1; i >= 0; i--)
