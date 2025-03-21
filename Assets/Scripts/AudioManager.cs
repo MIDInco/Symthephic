@@ -4,44 +4,22 @@ using UnityEngine;
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
-    
+
     public AudioSource audioSource;
-    public event Action OnAudioPlaybackStarted; // 🎯 オーディオ開始イベント
+    public event Action OnAudioPlaybackStarted;
 
-    private bool hasAudioStarted = false; // 🎯 再生確認フラグ
-
-    public void PlayAudioNow()
-    {
-        if (audioSource == null || audioSource.clip == null)
-        {
-            Debug.LogError("❌ AudioSource または AudioClip が設定されていません！");
-            return;
-        }
-
-        if (!audioSource.isPlaying)
-        {
-            audioSource.Play(); // 🎯 すぐに再生
-            Debug.Log($"✅ オーディオを即時再生！ (時間: {AudioSettings.dspTime:F3})");
-
-            // 🎯 オーディオが開始されたことを通知
-            OnAudioPlaybackStarted?.Invoke();
-        }
-        else
-        {
-            Debug.Log("⚠ 既にオーディオが再生中です。");
-        }
-    }
+    private bool hasAudioStarted = false;
 
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // 🎯 シーンを跨いでもオーディオを保持
+            DontDestroyOnLoad(gameObject); // シーンをまたいでもAudioManagerを保持
         }
         else
         {
-            Destroy(gameObject); // 🎯 二重生成を防ぐ
+            Destroy(gameObject);
         }
     }
 
@@ -53,13 +31,13 @@ public class AudioManager : MonoBehaviour
         }
         else if (audioSource.clip == null)
         {
-            Debug.LogError("❌ AudioClip が設定されていません！");
+            Debug.LogWarning("⚠ AudioClip は未設定ですが、後で設定する場合は問題ありません。");
         }
     }
 
     void Update()
     {
-        // 🎯 オーディオが再生開始されたらイベントを発火（1回のみ）
+        // 再生が始まった瞬間だけイベントを発火（1回のみ）
         if (!hasAudioStarted && audioSource != null && audioSource.isPlaying)
         {
             hasAudioStarted = true;
@@ -68,6 +46,28 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    // 🎯 現在のAudioClipを即時再生
+    public void PlayAudioNow()
+    {
+        if (audioSource == null || audioSource.clip == null)
+        {
+            Debug.LogError("❌ AudioSource または AudioClip が設定されていません！");
+            return;
+        }
+
+        if (!audioSource.isPlaying)
+        {
+            audioSource.Play();
+            Debug.Log($"✅ オーディオを即時再生！ (時間: {AudioSettings.dspTime:F3})");
+            OnAudioPlaybackStarted?.Invoke();
+        }
+        else
+        {
+            Debug.Log("⚠ 既にオーディオが再生中です。");
+        }
+    }
+
+    // 🎯 指定秒数後に再生予約
     public void PlayAudioWithDelay(float delaySeconds)
     {
         if (audioSource == null || audioSource.clip == null)
@@ -78,7 +78,7 @@ public class AudioManager : MonoBehaviour
 
         if (!audioSource.isPlaying)
         {
-            double playTime = AudioSettings.dspTime + delaySeconds; // 🎯 2 秒後に再生予約
+            double playTime = AudioSettings.dspTime + delaySeconds;
             audioSource.PlayScheduled(playTime);
             Debug.Log($"✅ {playTime:F3} sec にオーディオを再生予定 (現在時刻 {AudioSettings.dspTime:F3})");
         }
@@ -86,5 +86,30 @@ public class AudioManager : MonoBehaviour
         {
             Debug.Log("⚠ 既にオーディオが再生中です。");
         }
+    }
+
+    // 🎯 SongManager.SelectedSong からオーディオファイルを読み込んで再生
+    public void PlaySelectedAudio()
+    {
+        if (SongManager.SelectedSong == null)
+        {
+            Debug.LogError("❌ 選択された曲情報が存在しません！");
+            return;
+        }
+
+        string path = "Audio/" + SongManager.SelectedSong.AudioFileName;
+        AudioClip clip = Resources.Load<AudioClip>(path);
+
+        if (clip == null)
+        {
+            Debug.LogError($"❌ オーディオファイルが見つかりません: {path}（Resources以下に配置されていますか？）");
+            return;
+        }
+
+        audioSource.clip = clip;
+        audioSource.Play();
+        hasAudioStarted = true; // 再生開始を通知させる
+        OnAudioPlaybackStarted?.Invoke();
+        Debug.Log($"✅ オーディオ再生開始: {SongManager.SelectedSong.AudioFileName}");
     }
 }

@@ -39,19 +39,20 @@ public class NotesGenerator : MonoBehaviour
         Debug.Log("✅ NotesGenerator の Awake が実行されました");
     }
 
-    void Start()
+void Start()
+{
+    // ✅ 受け取ったデータをログに出力
+    if (SongManager.SelectedSong != null)
     {
-        StartCoroutine(LoadMidiFileAsync()); // 🎯 MIDIロードを開始
-
-        // 🎯 ここでは `OnAudioStarted()` をリッスンしない
+        Debug.Log($"🎯 GameScene で受け取ったMIDI: {SongManager.SelectedSong.MidiFileName} / {SongManager.SelectedSong.DisplayName}");
     }
-
-        // 🎯 `isReady` を外部から `true` に変更できるメソッドを追加
-    public void SetIsReady(bool value)
+    else
     {
-        isReady = value; // ✅ フラグを変更
-        Debug.Log($"🎵 isReady が {value} に変更されました");
+        Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
     }
+}
+
+
 
 private void OnAudioStarted()
 {
