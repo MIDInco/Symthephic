@@ -4,10 +4,8 @@ using UnityEngine;
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
-
     public AudioSource audioSource;
     public event Action OnAudioPlaybackStarted;
-
     private bool hasAudioStarted = false;
 
     void Awake()
@@ -27,65 +25,11 @@ public class AudioManager : MonoBehaviour
     {
         if (audioSource == null)
         {
-            Debug.LogError("❌ AudioSource がアタッチされていません！");
-        }
-        else if (audioSource.clip == null)
-        {
-            Debug.LogWarning("⚠ AudioClip は未設定ですが、後で設定する場合は問題ありません。");
+            Debug.LogError("❌ AudioManager: AudioSource がアタッチされていません！");
         }
     }
 
-    void Update()
-    {
-        if (!hasAudioStarted && audioSource != null && audioSource.isPlaying)
-        {
-            hasAudioStarted = true;
-            OnAudioPlaybackStarted?.Invoke();
-            Debug.Log($"🎵 オーディオが再生開始されました！ {AudioSettings.dspTime:F3} sec");
-        }
-    }
-
-    public void PlayAudioNow()
-    {
-        if (audioSource == null || audioSource.clip == null)
-        {
-            Debug.LogError("❌ AudioSource または AudioClip が設定されていません！");
-            return;
-        }
-
-        if (!audioSource.isPlaying)
-        {
-            audioSource.Play();
-            Debug.Log($"✅ オーディオを即時再生！ (時間: {AudioSettings.dspTime:F3})");
-            OnAudioPlaybackStarted?.Invoke();
-        }
-        else
-        {
-            Debug.Log("⚠ 既にオーディオが再生中です。");
-        }
-    }
-
-    public void PlayAudioWithDelay(float delaySeconds)
-    {
-        if (audioSource == null || audioSource.clip == null)
-        {
-            Debug.LogError("❌ AudioSource または AudioClip が設定されていません！");
-            return;
-        }
-
-        if (!audioSource.isPlaying)
-        {
-            double playTime = AudioSettings.dspTime + delaySeconds;
-            audioSource.PlayScheduled(playTime);
-            Debug.Log($"✅ {playTime:F3} sec にオーディオを再生予定 (現在時刻 {AudioSettings.dspTime:F3})");
-        }
-        else
-        {
-            Debug.Log("⚠ 既にオーディオが再生中です。");
-        }
-    }
-
-public void PlaySelectedAudio()
+   public void PlaySelectedAudio()
 {
     if (SongManager.SelectedSong == null)
     {
@@ -93,7 +37,9 @@ public void PlaySelectedAudio()
         return;
     }
 
-    string path = "PlayTest_Audio/" + SongManager.SelectedSong.AudioFileName;
+    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(SongManager.SelectedSong.AudioFileName);
+    string path = "Playlist_Audio/" + fileNameWithoutExtension;
+
     Debug.Log($"🎵 AudioManager: {path} からオーディオをロード");
 
     AudioClip clip = Resources.Load<AudioClip>(path);
@@ -101,16 +47,26 @@ public void PlaySelectedAudio()
     if (clip == null)
     {
         Debug.LogError($"❌ AudioManager: オーディオファイルが見つかりません: {path}");
+        DebugResourcesAudioFiles();
         return;
     }
 
     audioSource.clip = clip;
     hasAudioStarted = false;
-    Debug.Log($"✅ AudioManager: オーディオロード成功！{SongManager.SelectedSong.AudioFileName}");
+    Debug.Log($"✅ AudioManager: オーディオロード成功！{fileNameWithoutExtension}");
 
-    // ✅ 確実に再生されるかチェック
-    audioSource.Play();
-    Debug.Log($"▶ AudioManager: {SongManager.SelectedSong.AudioFileName} の再生開始！");
+    // 🚀 ここでの `audioSource.Play();` を削除する
 }
 
+
+    // ✅ 追加: Resources/Playlist_Audio 内のオーディオファイル一覧をデバッグ出力
+    private void DebugResourcesAudioFiles()
+    {
+        Debug.Log("📂 AudioManager: Resources.LoadAll<AudioClip>(\"Playlist_Audio\") で取得できるファイル一覧:");
+        AudioClip[] allClips = Resources.LoadAll<AudioClip>("Playlist_Audio");
+        foreach (var clip in allClips)
+        {
+            Debug.Log($" - {clip.name}");
+        }
+    }
 }

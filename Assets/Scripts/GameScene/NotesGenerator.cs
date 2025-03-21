@@ -193,14 +193,16 @@ public class NotesGenerator : MonoBehaviour
         return noteControllers;
     }
 
-    public void StartPlayback()
-    {
-        if (isReady) return;
+public void StartPlayback()
+{
+    if (isReady) return;
 
-        startTime = AudioSettings.dspTime;
-        isReady = true;
-        Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
-    }
+    // ✅ これを削除 or コメントアウトする
+    // startTime = AudioSettings.dspTime;
+
+    isReady = true;
+    Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
+}
 
     public void SetStartTime(double time)
     {

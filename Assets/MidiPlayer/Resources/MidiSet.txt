@@ -13,7 +13,9 @@
   <MidiFiles>
     <string>0001_Kousaku</string>
     <string>0003_Kousaku_Simple</string>
+    <string>0004_Kousaku_Test</string>
     <string>20250319_Test_120_noAttack</string>
     <string>20250320_Test_90</string>
+    <string>Test_150</string>
   </MidiFiles>
 </MidiSet>

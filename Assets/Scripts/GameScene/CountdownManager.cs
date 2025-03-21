@@ -1,33 +1,30 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro; // ✅ 追加！
 
 public class CountdownManager : MonoBehaviour
 {
-    public Text countdownText; // UI のカウントダウン表示用
-    public int countdownTime = 3; // カウントダウン秒数
-    public NotesGenerator notesGenerator;
-    private bool countdownFinished = false;
+    public TextMeshProUGUI countdownText; // ✅ ここを変更！
+    public int countdownTime = 3;
+    public ChartPlaybackManager chartPlaybackManager;
 
-void Start()
-{
-    if (notesGenerator == null)
+    void Start()
     {
-        notesGenerator = FindFirstObjectByType<NotesGenerator>(); // ✅ 修正
-        if (notesGenerator == null)
+        Debug.Log("🔍 CountdownManager: Start() 開始");
+
+        if (countdownText == null)
         {
-            Debug.LogError("❌ NotesGenerator がシーンに見つかりません！");
+            Debug.LogError("❌ countdownText が設定されていません！Inspector でアタッチしてください。");
             return;
         }
+
+        StartCoroutine(CountdownRoutine());
     }
-
-    StartCoroutine(CountdownRoutine());
-}
-
-
 
     IEnumerator CountdownRoutine()
     {
+        Debug.Log("⏳ CountdownRoutine 開始");
+
         for (int i = countdownTime; i > 0; i--)
         {
             countdownText.text = i.ToString();
@@ -36,27 +33,19 @@ void Start()
         }
 
         countdownText.text = "Go!";
-        Debug.Log("🚀 カウントダウン終了！オーディオと譜面を開始");
+        Debug.Log("🚀 カウントダウン終了 → ChartPlaybackManager に通知");
 
-        StartPlayback();
-        yield return new WaitForSeconds(1.0f); // "Go!" の表示時間
-        countdownText.gameObject.SetActive(false); // カウントダウン表示を消す
+        if (chartPlaybackManager != null)
+        {
+            Debug.Log("✅ ChartPlaybackManager.StartPlayback() を呼び出します！");
+            chartPlaybackManager.StartPlayback();
+        }
+        else
+        {
+            Debug.LogError("❌ ChartPlaybackManager が NULL のため、StartPlayback() を呼べません！");
+        }
+
+        yield return new WaitForSeconds(1.0f);
+        countdownText.gameObject.SetActive(false);
     }
-
-void StartPlayback()
-{
-    if (!countdownFinished)
-    {
-        countdownFinished = true;
-
-        // 🎯 正確な時間をセット
-        double playbackStartTime = AudioSettings.dspTime;
-
-        // 🎯 オーディオを再生
-        AudioManager.Instance.PlayAudioNow();
-
-        // 🎯 譜面の開始時間をセット
-        notesGenerator.StartPlayback(); // ✅ `StartPlayback()` に変更
-    }
-}
 }

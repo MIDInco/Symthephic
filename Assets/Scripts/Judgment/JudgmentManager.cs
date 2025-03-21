@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using MidiPlayerTK;
 using System.Collections.Generic;
 
 public class JudgmentManager : MonoBehaviour
@@ -8,9 +7,9 @@ public class JudgmentManager : MonoBehaviour
     public NotesGenerator notesGenerator;
     public Transform judgmentLine;
 
-    [SerializeField] private int perfectThreshold = 50; // 開発者が設定可能
-    [SerializeField] private int goodThreshold = 120;   // 開発者が設定可能
-    private int missThreshold; // 自動設定される
+    [SerializeField] private int perfectThreshold = 50;
+    [SerializeField] private int goodThreshold = 120;
+    private int missThreshold;
 
     public static event Action<string, Vector3> OnJudgment;
 
@@ -39,17 +38,6 @@ public class JudgmentManager : MonoBehaviour
         }
 
         missThreshold = goodThreshold + 1;
-
-        double BPM = notesGenerator.midiFilePlayer.MPTK_Tempo;
-        int TPQN = notesGenerator.TPQN;
-
-        if (BPM <= 0 || TPQN <= 0)
-        {
-            Debug.LogError("⚠ BPMまたはTPQNが無効です！");
-            return;
-        }
-
-        Debug.Log($"🎯 判定閾値更新: Perfect=±{perfectThreshold} Tick, Good=±{perfectThreshold + 1}~{goodThreshold} Tick, Miss=±{missThreshold}~∞");
     }
 
     public void ProcessKeyPress(int noteValue)
@@ -63,9 +51,7 @@ public class JudgmentManager : MonoBehaviour
         long currentTick = (long)(elapsedTime / tickDuration);
 
         NoteController bestNote = null;
-        NoteController delayedGoodNote = null;
         long bestTickDifference = long.MaxValue;
-        long delayedGoodTickDifference = long.MaxValue;
         string judgmentResult = "Miss";
 
         foreach (var note in notesGenerator.GetNoteControllers())
@@ -74,26 +60,11 @@ public class JudgmentManager : MonoBehaviour
 
             long tickDifference = note.tick - currentTick;
 
-            if (tickDifference < 0 && Mathf.Abs(tickDifference) <= goodThreshold)
-            {
-                if (Mathf.Abs(tickDifference) < Mathf.Abs(delayedGoodTickDifference))
-                {
-                    delayedGoodNote = note;
-                    delayedGoodTickDifference = tickDifference;
-                }
-            }
-
             if (Mathf.Abs(tickDifference) < Mathf.Abs(bestTickDifference))
             {
                 bestNote = note;
                 bestTickDifference = tickDifference;
             }
-        }
-
-        if (delayedGoodNote != null)
-        {
-            bestNote = delayedGoodNote;
-            bestTickDifference = delayedGoodTickDifference;
         }
 
         if (bestNote != null)
@@ -109,22 +80,13 @@ public class JudgmentManager : MonoBehaviour
             else
             {
                 judgmentResult = "Miss";
-                Debug.Log($"🚫 Miss - 早すぎた入力（Goodの範囲を超えた） | TickDifference={bestTickDifference}");
                 return;
             }
+
+            notesGenerator.GetNoteControllers().Remove(bestNote);
+            Destroy(bestNote.gameObject);
+            OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
         }
-
-        if (bestNote == null)
-        {
-            Debug.Log($"🚫 Miss - 該当ノートが見つかりません (NoteValue={noteValue})");
-            return;
-        }
-
-        Debug.Log($"🎯 判定: {judgmentResult} (Note={bestNote.noteValue}, Tick={bestNote.tick}, TickDifference={bestTickDifference})");
-
-        notesGenerator.GetNoteControllers().Remove(bestNote);
-        Destroy(bestNote.gameObject);
-        OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
     }
 
     private void AutoMissCheck()
@@ -144,6 +106,7 @@ public class JudgmentManager : MonoBehaviour
             if (note.tick < currentTick - goodThreshold)
             {
                 Debug.Log($"❌ AutoMiss - ノートを逃しました (Note={note.noteValue}, Tick={note.tick}, 遅れ={note.tick - currentTick})");
+
                 notes.RemoveAt(i);
                 Destroy(note.gameObject);
                 OnJudgment?.Invoke("Miss", note.transform.position);

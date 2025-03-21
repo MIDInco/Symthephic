@@ -1,69 +1,55 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ChartPlaybackManager : MonoBehaviour
 {
     public NotesGenerator notesGenerator;
-    public Text countdownText;
-    public int countdownTime = 3;
+
+    void Awake()
+    {
+        Debug.Log($"🔍 ChartPlaybackManager: Awake() 実行 (GameObject: {gameObject.name})");
+    }
 
     void Start()
     {
-        Debug.Log("🎯 ChartPlaybackManager の Start が実行されました");
+        Debug.Log($"✅ ChartPlaybackManager: Start() 実行 (GameObject: {gameObject.name})");
 
-        if (AudioManager.Instance == null)
+        // **NotesGenerator の参照をチェック**
+        if (notesGenerator == null)
         {
-            Debug.LogError("❌ AudioManager が見つかりません！");
+            Debug.LogError("❌ ChartPlaybackManager: NotesGenerator が設定されていません！");
+        }
+        else
+        {
+            Debug.Log($"✅ NotesGenerator が正しく設定されています: {notesGenerator.gameObject.name}");
+        }
+    }
+
+    public void StartPlayback()
+    {
+        Debug.Log("🎬 ChartPlaybackManager: StartPlayback() が呼ばれました！");
+
+        if (AudioManager.Instance == null || AudioManager.Instance.audioSource == null)
+        {
+            Debug.LogError("❌ AudioManager または audioSource が NULL のため、オーディオを再生できません！");
             return;
         }
 
+        Debug.Log("✅ オーディオを再生します！");
+        AudioManager.Instance.audioSource.Play();
+
         if (notesGenerator == null)
         {
-            notesGenerator = FindFirstObjectByType<NotesGenerator>();
-            if (notesGenerator == null)
-            {
-                Debug.LogError("❌ NotesGenerator がシーンに見つかりません！");
-                return;
-            }
+            Debug.LogError("❌ NotesGenerator が NULL のため、譜面の再生ができません！");
+            return;
         }
 
-        AudioManager.Instance.OnAudioPlaybackStarted += OnAudioPlaybackStarted;
-
-        StartCoroutine(CountdownRoutine());
+        Debug.Log("✅ 譜面の再生を開始します！");
+        OnAudioPlaybackStarted();
     }
 
-    IEnumerator CountdownRoutine()
-    {
-        for (int i = countdownTime; i > 0; i--)
-        {
-            if (countdownText != null)
-            {
-                countdownText.text = i.ToString();
-            }
-            Debug.Log($"⏳ カウントダウン: {i}");
-            yield return new WaitForSeconds(1.0f);
-        }
-
-        if (countdownText != null)
-        {
-            countdownText.text = "Go!";
-        }
-        Debug.Log("🚀 カウントダウン終了！オーディオを再生");
-
-        AudioManager.Instance.audioSource.Play();
-        
-        yield return new WaitForSeconds(1.0f);
-        if (countdownText != null)
-        {
-            countdownText.gameObject.SetActive(false);
-        }
-    }
-
-    void OnAudioPlaybackStarted()
+    private void OnAudioPlaybackStarted()
     {
         double audioStartTime = AudioSettings.dspTime;
-
         float chartDelay = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
         double adjustedStartTime = audioStartTime + chartDelay;
 

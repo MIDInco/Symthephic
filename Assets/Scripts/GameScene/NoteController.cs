@@ -2,16 +2,16 @@ using UnityEngine;
 
 public class NoteController : MonoBehaviour
 {
-    public double tickTimeSeconds; // 🎯 **このノートの Tick が譜面内で何秒に相当するか**
-    private NotesGenerator generator;
+    public int noteValue; // ノートの音程
+    public long tick; // ノートのタイミング（MIDI Tick）
+    
+    private NotesGenerator generator; // ノートを管理するジェネレーター
+    public double tickTimeSeconds; // ノートの秒単位のタイミング
+    public string uniqueID { get; private set; } // ノートの一意識別ID
 
-    public int noteValue { get; set; }
-    public long tick { get; set; } 
-    public string uniqueID { get; private set; }
-
-    public void Initialize(double tickTime, NotesGenerator gen, string id)
+    public void Initialize(double noteTime, NotesGenerator gen, string id)
     {
-        tickTimeSeconds = tickTime; // 🎯 譜面内の時間 (秒)
+        tickTimeSeconds = noteTime; // MIDI Tick を秒単位に変換した値
         generator = gen;
         uniqueID = id;
     }
@@ -25,7 +25,8 @@ public class NoteController : MonoBehaviour
 
         transform.position = new Vector3(transform.position.x, transform.position.y, (float)targetZ);
 
-        if (targetZ < -10f)
+        // 一定距離を超えたら削除
+        if (targetZ < -10)
         {
             generator.RemoveNote(this);
             Destroy(gameObject);
