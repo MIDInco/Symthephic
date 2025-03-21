@@ -4,9 +4,15 @@ using UnityEngine;
 public class Noteoffset : MonoBehaviour
 {
     public static Noteoffset Instance;
+
+    [Tooltip("ノート判定のタイミング補正（秒単位）")]
+    [Range(-0.2f, 0.2f)]
     public float NoteoffsetValue = 0.0f; // ノートのオフセット
+
     private float detectedBPM = 120f; // 取得した BPM
-    public float chartDelay = 0.0f; // 🎯 Chart Delay を追加
+
+    [Tooltip("譜面再生を遅らせる補正時間（秒）")]
+    public float chartDelay = 0.0f; // Chart Delay
 
     private void Awake()
     {
@@ -42,10 +48,10 @@ public class Noteoffset : MonoBehaviour
 
     public float GetChartDelay()
     {
-        return chartDelay; // 🎯 Chart Delay を返す
+        return chartDelay;
     }
 
-    // ノート補正値をゲーム内UIなどから変更できるようにする準備
+    // 🎛 ゲーム内UIから変更できるようにする準備
     public void SetNoteOffsetValue(float value)
     {
         NoteoffsetValue = value;
@@ -56,6 +62,4 @@ public class Noteoffset : MonoBehaviour
     {
         return NoteoffsetValue;
     }
-    
-
 }
