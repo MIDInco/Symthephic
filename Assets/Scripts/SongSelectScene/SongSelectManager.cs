@@ -21,6 +21,12 @@ void LoadAvailableSongs()
 {
     List<MPTKListItem> midiFiles = MidiPlayerGlobal.MPTK_ListMidi;
 
+    Debug.Log("🎵 MPTKに登録されているMIDIリスト:");
+    foreach (var file in midiFiles)
+    {
+        Debug.Log($" - {file.Label}");
+    }
+
     foreach (var file in midiFiles)
     {
         SongData songData = SongDatabase.GetSongData(file.Label);

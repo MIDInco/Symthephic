@@ -19,4 +19,9 @@ public static class SongManager
             Debug.LogError($"❌ 選択したMIDIがリストにありません: {midiFileName}");
         }
     }
+
+    public static string GetSelectedAudioFile()
+{
+    return SelectedSong?.AudioFileName;
+}
 }

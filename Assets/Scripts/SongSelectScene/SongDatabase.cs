@@ -8,9 +8,9 @@ public static class SongDatabase
 {
     private static Dictionary<string, SongData> songLookup = new Dictionary<string, SongData>
     {
-        { "Kousaku", new SongData("Kousaku", "交錯", "Kousaku.wav") },
+        { "0001_Kousaku", new SongData("0001_Kousaku", "交錯", "Kousaku_Master2mix.wav") },
         { "Test_Song", new SongData("Test_Song", "テスト曲", "Test_Song.wav") },
-        { "DemoTrack", new SongData("DemoTrack", "デモトラック", "DemoTrack.wav") }
+        { "20250320_Test_90", new SongData("20250320_Test_90", "90", "20250320_Test_90.wav") }
     };
 
     public static SongData GetSongData(string midiFileName)

@@ -15,7 +15,7 @@ public class AudioManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // シーンをまたいでもAudioManagerを保持
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -37,7 +37,6 @@ public class AudioManager : MonoBehaviour
 
     void Update()
     {
-        // 再生が始まった瞬間だけイベントを発火（1回のみ）
         if (!hasAudioStarted && audioSource != null && audioSource.isPlaying)
         {
             hasAudioStarted = true;
@@ -46,7 +45,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // 🎯 現在のAudioClipを即時再生
     public void PlayAudioNow()
     {
         if (audioSource == null || audioSource.clip == null)
@@ -67,7 +65,6 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // 🎯 指定秒数後に再生予約
     public void PlayAudioWithDelay(float delaySeconds)
     {
         if (audioSource == null || audioSource.clip == null)
@@ -88,28 +85,32 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    // 🎯 SongManager.SelectedSong からオーディオファイルを読み込んで再生
-    public void PlaySelectedAudio()
+public void PlaySelectedAudio()
+{
+    if (SongManager.SelectedSong == null)
     {
-        if (SongManager.SelectedSong == null)
-        {
-            Debug.LogError("❌ 選択された曲情報が存在しません！");
-            return;
-        }
-
-        string path = "Audio/" + SongManager.SelectedSong.AudioFileName;
-        AudioClip clip = Resources.Load<AudioClip>(path);
-
-        if (clip == null)
-        {
-            Debug.LogError($"❌ オーディオファイルが見つかりません: {path}（Resources以下に配置されていますか？）");
-            return;
-        }
-
-        audioSource.clip = clip;
-        audioSource.Play();
-        hasAudioStarted = true; // 再生開始を通知させる
-        OnAudioPlaybackStarted?.Invoke();
-        Debug.Log($"✅ オーディオ再生開始: {SongManager.SelectedSong.AudioFileName}");
+        Debug.LogError("❌ AudioManager: SongManager.SelectedSong が null です！");
+        return;
     }
+
+    string path = "PlayTest_Audio/" + SongManager.SelectedSong.AudioFileName;
+    Debug.Log($"🎵 AudioManager: {path} からオーディオをロード");
+
+    AudioClip clip = Resources.Load<AudioClip>(path);
+
+    if (clip == null)
+    {
+        Debug.LogError($"❌ AudioManager: オーディオファイルが見つかりません: {path}");
+        return;
+    }
+
+    audioSource.clip = clip;
+    hasAudioStarted = false;
+    Debug.Log($"✅ AudioManager: オーディオロード成功！{SongManager.SelectedSong.AudioFileName}");
+
+    // ✅ 確実に再生されるかチェック
+    audioSource.Play();
+    Debug.Log($"▶ AudioManager: {SongManager.SelectedSong.AudioFileName} の再生開始！");
+}
+
 }
