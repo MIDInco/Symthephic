@@ -12,10 +12,10 @@ public class NotesGenerator : MonoBehaviour
 
     // noteControllers を private のままにする
     public List<NoteController> noteControllers = new List<NoteController>();
-    private double startTime;
+    public double startTime { get; private set; }
     public MidiFilePlayer midiFilePlayer;
 
-    private int TPQN;
+    public int TPQN { get; private set; }
     public float BPM { get; private set; }
 
     public float chartDelay = 0.0f; // 🎯 譜面の再生遅延時間をInspectorから設定可能に
@@ -73,7 +73,7 @@ private void OnAudioStarted()
   void Update()
 {
     // 🎯 isReady の状態と現在の時間をデバッグログに出力
-    Debug.Log($"🔍 Update() 実行 - isReady={isReady}, CurrentTime={AudioSettings.dspTime:F3}");
+    //Debug.Log($"🔍 Update() 実行 - isReady={isReady}, CurrentTime={AudioSettings.dspTime:F3}");
 
     if (!isReady) 
     {
@@ -89,7 +89,7 @@ private void OnAudioStarted()
         if (noteControllers[i] != null)
         {
             noteControllers[i].UpdatePosition((float)currentTime);
-            Debug.Log($"🎵 ノーツ更新 - NoteID: {noteControllers[i].uniqueID}, Z位置: {noteControllers[i].transform.position.z}");
+           // Debug.Log($"🎵 ノーツ更新 - NoteID: {noteControllers[i].uniqueID}, Z位置: {noteControllers[i].transform.position.z}");
         }
     }
 }
@@ -208,7 +208,7 @@ void GenerateNotes(MidiLoad midiLoad)
 }
 
 
-    private float GetFixedXPosition(int noteValue)
+    public float GetFixedXPosition(int noteValue)
     {
         switch (noteValue)
         {
