@@ -23,7 +23,7 @@ public class NotesGenerator : MonoBehaviour
     private Dictionary<string, double> noteReachTimes = new Dictionary<string, double>();
     private Dictionary<string, float> noteOnTimes = new Dictionary<string, float>();
 
-    private bool isReady = false; // 🎯 ロード完了フラグ
+    public bool isReady { get; private set; } = false; // 🎯 ロード完了フラグ
     public int chartDelayInTicks = 0; // 🎯 Tick 単位で譜面の遅延を指定
 
     public Transform judgmentLine; // 判定ラインのTransformを設定
