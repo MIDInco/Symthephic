@@ -35,18 +35,18 @@ public class NotesGenerator : MonoBehaviour
         Debug.Log("✅ NotesGenerator の Awake が実行されました");
     }
 
-    void Start()
+void Start()
+{
+    if (SongManager.SelectedSong != null)
     {
-        if (SongManager.SelectedSong != null)
-        {
-            Debug.Log($"🎯 GameScene で受け取ったMIDI: {SongManager.SelectedSong.MidiFileName} / {SongManager.SelectedSong.DisplayName}");
-            LoadSelectedMidiAndGenerateNotes(); // 🎯 追加したメソッドを呼び出す
-        }
-        else
-        {
-            Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
-        }
+        Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを受け取りました → {SongManager.SelectedSong.MidiFileName}");
+        Debug.Log("⏳ ただし、譜面の生成は ChartPlaybackManager に任せるため、ここでは実行しません。");
     }
+    else
+    {
+        Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
+    }
+}
 
     private void OnAudioStarted()
     {
