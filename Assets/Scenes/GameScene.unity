@@ -575,8 +575,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a13aa11e86f364c4e82f98b35bf0fe07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NoteoffsetValue: 0.05
-  chartDelay: 0.2
+  NoteoffsetValue: 0
+  chartDelay: 0.1
 --- !u!1 &460004760
 GameObject:
   m_ObjectHideFlags: 0
@@ -1134,7 +1134,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: c47f440d36667754091d4a0e2625e337, type: 3}
   m_Resource: {fileID: 8300000, guid: c47f440d36667754091d4a0e2625e337, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.091
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0
