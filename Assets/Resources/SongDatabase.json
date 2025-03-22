@@ -1,0 +1,17 @@
+[
+    {
+      "MidiFileName": "0001_Kousaku",
+      "DisplayName": "交錯",
+      "AudioFileName": "Kousaku_Master2mix.wav",
+      "IsDLC": false,
+      "DLCId": ""
+    },
+    {
+      "MidiFileName": "0003_Taihaiteki_Hard",
+      "DisplayName": "退廃的快楽物質",
+      "AudioFileName": "Taihaitekikairakubussitsu.wav",
+      "IsDLC": true,
+      "DLCId": "dlc_pack_01"
+    }
+  ]
+  

@@ -3,15 +3,19 @@ using System;
 [Serializable]
 public class SongData
 {
-    public string MidiFileName;   // MIDIファイル名（MPTKで使用されるLabel）
-    public string DisplayName;    // 本当の曲名
-    public string AudioFileName;  // 対応するオーディオファイル名
+    public string MidiFileName;
+    public string DisplayName;
+    public string AudioFileName;
+    public bool IsDLC;
+    public string DLCId;
 
-    // コンストラクタ
-    public SongData(string midiFileName, string displayName, string audioFileName)
+    public SongData(string midiFileName, string displayName, string audioFileName, bool isDLC = false, string dlcId = "")
     {
         MidiFileName = midiFileName;
         DisplayName = displayName;
         AudioFileName = audioFileName;
+        IsDLC = isDLC;
+        DLCId = dlcId;
     }
 }
+
