@@ -1463,8 +1463,8 @@ MonoBehaviour:
   notesGenerator: {fileID: 526573592}
   judgmentLine: {fileID: 684773994}
   perfectThreshold: 120
-  goodThreshold: 480
-  missThreshold: 480
+  goodThreshold: 360
+  missThreshold: 361
   earlyMissThreshold: 720
   earlyIgnoreThreshold: 721
 --- !u!1 &1857447748

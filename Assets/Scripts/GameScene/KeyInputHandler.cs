@@ -6,7 +6,7 @@ public class KeyInputHandler : MonoBehaviour
 
     void Update()
     {
-        if (Input.anyKeyDown) Debug.Log("キーが押されました！");
+       // if (Input.anyKeyDown) Debug.Log("キーが押されました！");
 
         if (Input.GetKeyDown(KeyCode.S))
             RegisterKeyPress(60); // C4
