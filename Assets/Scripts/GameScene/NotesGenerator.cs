@@ -48,22 +48,19 @@ public class NotesGenerator : MonoBehaviour
         }
     }
 
-    void Update()
+void Update()
+{
+    if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
+    if (!isReady) return;
+
+    double currentTime = GameSceneManager.GetGameDspTime() - startTime;
+    noteControllers.RemoveAll(note => note == null);
+
+    foreach (var note in noteControllers)
     {
-        if (!isReady)
-        {
-            Debug.Log("⏳ NotesGenerator の Update() は isReady=false のため動作しません");
-            return;
-        }
-
-        double currentTime = AudioSettings.dspTime - startTime;
-        noteControllers.RemoveAll(note => note == null);
-
-        foreach (var note in noteControllers)
-        {
-            note?.UpdatePosition((float)currentTime);
-        }
+        note?.UpdatePosition((float)currentTime);
     }
+}
 
     public void RemoveNote(NoteController note)
     {
@@ -247,6 +244,9 @@ public class NotesGenerator : MonoBehaviour
 
     public void LoadSelectedMidiAndGenerateNotes()
     {
+        noteSpeed = GameSettings.NoteSpeed; // UIスライダー値（0.5〜10.0）
+        Debug.Log($"🎯 NoteSpeed が設定されました: {noteSpeed}");
+
         if (SongManager.SelectedSong != null)
         {
             Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを読み込みます → {SongManager.SelectedSong.MidiFileName}");

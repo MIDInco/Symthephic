@@ -18,6 +18,7 @@ public class NoteController : MonoBehaviour
 
     public void UpdatePosition(float currentTime)
     {
+        if (GameSceneManager.IsPaused) return; // ← 追加
         if (generator == null) return;
 
         double elapsedTime = currentTime - tickTimeSeconds;

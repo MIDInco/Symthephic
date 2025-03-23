@@ -20,6 +20,17 @@ public class KeyInputHandler : MonoBehaviour
             RegisterKeyPress(64); // E4
         if (Input.GetKeyDown(KeyCode.L))
             RegisterKeyPress(65); // F4
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (GameSceneManager.Instance != null)
+            {
+            if (GameSceneManager.IsPaused)
+                GameSceneManager.Instance.ResumeGame();
+            else
+                GameSceneManager.Instance.PauseGame();
+            }
+        }
     }
 
     void RegisterKeyPress(int noteValue)
