@@ -1,4 +1,4 @@
-using System; // 🎯 Guid を使用するために追加
+using System;
 using MidiPlayerTK;
 using System.Collections.Generic;
 using System.Collections;
@@ -18,44 +18,39 @@ public class NotesGenerator : MonoBehaviour
     public float BPM { get; private set; }
 
     public float chartDelay = 0.0f;
-
-    private Dictionary<string, double> noteReachTimes = new Dictionary<string, double>();
-    private Dictionary<string, float> noteOnTimes = new Dictionary<string, float>();
-
     public bool isReady { get; private set; } = false;
     public int chartDelayInTicks = 0;
 
     public Transform judgmentLine;
 
     public event Action OnChartPlaybackStart;
-    public event System.Action<NoteController> OnNoteGenerated;
+    public event Action<NoteController> OnNoteGenerated;
+
+    private List<(long tick, double tempo)> cachedTempoEvents = new List<(long, double)>();
+
+    public JudgmentManager judgmentManager;
 
     void Awake()
     {
         Debug.Log("✅ NotesGenerator の Awake が実行されました");
     }
 
-void Start()
-{
-    if (SongManager.SelectedSong != null)
+    void Start()
     {
-        Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを受け取りました → {SongManager.SelectedSong.MidiFileName}");
-        Debug.Log("⏳ ただし、譜面の生成は ChartPlaybackManager に任せるため、ここでは実行しません。");
-    }
-    else
-    {
-        Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
-    }
-}
-
-    private void OnAudioStarted()
-    {
-        Debug.LogWarning("⚠ OnAudioStarted() は現在使用されていません。ChartPlaybackManager 経由で譜面を再生してください。");
+        if (SongManager.SelectedSong != null)
+        {
+            Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを受け取りました → {SongManager.SelectedSong.MidiFileName}");
+            Debug.Log("⏳ ただし、譜面の生成は ChartPlaybackManager に任せるため、ここでは実行しません。");
+        }
+        else
+        {
+            Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
+        }
     }
 
     void Update()
     {
-        if (!isReady) 
+        if (!isReady)
         {
             Debug.Log("⏳ NotesGenerator の Update() は isReady=false のため動作しません");
             return;
@@ -64,12 +59,9 @@ void Start()
         double currentTime = AudioSettings.dspTime - startTime;
         noteControllers.RemoveAll(note => note == null);
 
-        for (int i = noteControllers.Count - 1; i >= 0; i--)
+        foreach (var note in noteControllers)
         {
-            if (noteControllers[i] != null)
-            {
-                noteControllers[i].UpdatePosition((float)currentTime);
-            }
+            note?.UpdatePosition((float)currentTime);
         }
     }
 
@@ -78,51 +70,81 @@ void Start()
         noteControllers.Remove(note);
     }
 
- IEnumerator LoadMidiFileAsync()
-{
-    isReady = false;
+    void CacheTempoEvents(MidiLoad midiLoad)
+    {
+        cachedTempoEvents.Clear();
 
-    if (midiFilePlayer == null) yield break;
+        foreach (var ev in midiLoad.MPTK_MidiEvents)
+        {
+            if (ev.Meta == MPTKMeta.SetTempo)
+            {
+                cachedTempoEvents.Add((ev.Tick, ev.Value));
+            }
+        }
 
-    MidiLoad midiLoad = midiFilePlayer.MPTK_Load();
-    if (midiLoad == null) yield break;
-    Debug.Log("🎵 MIDIデータのロード完了 → 譜面を即時生成");
+        cachedTempoEvents.Sort((a, b) => a.tick.CompareTo(b.tick));
+        Debug.Log($"📊 テンポイベント数: {cachedTempoEvents.Count}");
+    }
 
-    TPQN = midiLoad.MPTK_DeltaTicksPerQuarterNote;
-    BPM = (float)midiFilePlayer.MPTK_Tempo;
+    public long GetCurrentTickWithTempo(double dspTime)
+    {
+        double timeSinceStart = dspTime - startTime;
+        double currentTempo = 500000.0;
+        long lastTick = 0;
+        double currentTickTime = 0.0;
+        int tempoIndex = 0;
 
-    Debug.Log($"🎼 BPM={BPM}, TPQN={TPQN}");
+        foreach (var tempo in cachedTempoEvents)
+        {
+            double secondsPerTick = currentTempo / 1000000.0 / TPQN;
+            double nextTickTime = currentTickTime + (tempo.tick - lastTick) * secondsPerTick;
+            if (nextTickTime > timeSinceStart) break;
 
-    float quarterNoteDuration = 60f / BPM;
-    float tickDuration = quarterNoteDuration / TPQN;
-    float chartDelayFromTicks = chartDelayInTicks * tickDuration;
-    float totalChartDelay = chartDelay + chartDelayFromTicks;
+            currentTickTime = nextTickTime;
+            lastTick = tempo.tick;
+            currentTempo = tempo.tempo;
+            tempoIndex++;
+        }
 
-    GenerateNotes(midiLoad);
-    Debug.Log($"✅ ノート生成完了！");
+        double remainingTime = timeSinceStart - currentTickTime;
+        double secondsPerTickNow = currentTempo / 1000000.0 / TPQN;
+        return lastTick + (long)(remainingTime / secondsPerTickNow);
+    }
 
-    // 🎯 仮の再生時刻を設定（実際には ChartPlaybackManager が SetStartTime() で上書きする）
-    double audioStartTime = AudioSettings.dspTime;
-    float chartDelayOffset = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
-    startTime = audioStartTime + chartDelayOffset;
+    IEnumerator LoadMidiFileAsync()
+    {
+        isReady = false;
 
-    Debug.Log($"⏳ 譜面の開始時間を {chartDelayOffset} 秒遅らせる (startTime = {startTime:F3})");
+        if (midiFilePlayer == null) yield break;
 
-    // 🎯 この段階ではまだ譜面は再生しないが、Updateが動くように isReady を true にする
-    isReady = false; // ✅ ← ここは true にしない（勝手に動き出すのを防ぐ）
-}
+        MidiLoad midiLoad = midiFilePlayer.MPTK_Load();
+        if (midiLoad == null) yield break;
 
+        Debug.Log("🎵 MIDIデータのロード完了 → 譜面を即時生成");
+
+        TPQN = midiLoad.MPTK_DeltaTicksPerQuarterNote;
+        BPM = (float)midiFilePlayer.MPTK_Tempo;
+
+        Debug.Log($"🎼 BPM={BPM}, TPQN={TPQN}");
+
+        CacheTempoEvents(midiLoad);
+        GenerateNotes(midiLoad);
+        Debug.Log($"✅ ノート生成完了！");
+
+        double audioStartTime = AudioSettings.dspTime;
+        float chartDelayOffset = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
+        startTime = audioStartTime + chartDelayOffset;
+
+        Debug.Log($"⏳ 譜面の開始時間を {chartDelayOffset} 秒遅らせる (startTime = {startTime:F3})");
+
+        isReady = false;
+    }
 
     void GenerateNotes(MidiLoad midiLoad)
     {
         Debug.Log("📜 ノート生成開始...");
 
         double TPQN = midiLoad.MPTK_DeltaTicksPerQuarterNote;
-        double BPM = midiFilePlayer.MPTK_Tempo;
-
-        double quarterNoteDuration = 60.0 / BPM;
-        double tickDuration = quarterNoteDuration / TPQN;
-
         Dictionary<long, List<MPTKEvent>> tickNotesMap = new Dictionary<long, List<MPTKEvent>>();
         int globalIndex = 0;
 
@@ -137,16 +159,34 @@ void Start()
             }
         }
 
+        double currentTempo = 500000;
+        long lastTick = 0;
+        double currentTime = 0.0;
+        int tempoIndex = 0;
+
         foreach (var kvp in tickNotesMap)
         {
             long tick = kvp.Key;
             List<MPTKEvent> notesAtTick = kvp.Value;
 
+            while (tempoIndex < cachedTempoEvents.Count && cachedTempoEvents[tempoIndex].tick <= tick)
+            {
+                long deltaTicks = cachedTempoEvents[tempoIndex].tick - lastTick;
+                double secondsPerTick = currentTempo / 1000000.0 / TPQN;
+                currentTime += deltaTicks * secondsPerTick;
+
+                lastTick = cachedTempoEvents[tempoIndex].tick;
+                currentTempo = cachedTempoEvents[tempoIndex].tempo;
+                tempoIndex++;
+            }
+
+            double secondsPerTickNow = currentTempo / 1000000.0 / TPQN;
+            double noteTime = currentTime + (tick - lastTick) * secondsPerTickNow;
+
             notesAtTick.Sort((a, b) => b.Value.CompareTo(a.Value));
 
             foreach (var ev in notesAtTick)
             {
-                double noteTime = tick * tickDuration;
                 double startZ = -noteSpeed * noteTime;
                 float startX = GetFixedXPosition(ev.Value);
 
@@ -165,11 +205,13 @@ void Start()
                     noteControllers.Add(noteController);
 
                     Debug.Log($"🎵 [ノート生成] ID={uniqueID}, Note={noteController.noteValue}, Tick={noteController.tick}, 発音時間={noteTime:F3} sec");
+
+                    OnNoteGenerated?.Invoke(noteController);
                 }
             }
         }
 
-        Debug.Log("✅ ノート生成完了！");
+        Debug.Log("✅ ノート生成完了（テンポ対応）！");
     }
 
     public float GetFixedXPosition(int noteValue)
@@ -186,23 +228,16 @@ void Start()
         }
     }
 
-    public JudgmentManager judgmentManager;
+    public List<NoteController> GetNoteControllers() => noteControllers;
 
-    public List<NoteController> GetNoteControllers()
+    public void StartPlayback()
     {
-        return noteControllers;
+        if (isReady) return;
+        isReady = true;
+        Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
+
+        OnChartPlaybackStart?.Invoke(); // 🔁 これを追加
     }
-
-public void StartPlayback()
-{
-    if (isReady) return;
-
-    // ✅ これを削除 or コメントアウトする
-    // startTime = AudioSettings.dspTime;
-
-    isReady = true;
-    Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
-}
 
     public void SetStartTime(double time)
     {
@@ -210,7 +245,6 @@ public void StartPlayback()
         Debug.Log($"🎵 NotesGenerator: startTime を {startTime:F3} に設定");
     }
 
-    // 🎯 新規追加：選択された曲のMIDIを読み込み → ノーツ生成
     public void LoadSelectedMidiAndGenerateNotes()
     {
         if (SongManager.SelectedSong != null)

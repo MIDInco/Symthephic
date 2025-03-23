@@ -7,15 +7,11 @@ public class JudgmentManager : MonoBehaviour
     public NotesGenerator notesGenerator;
     public Transform judgmentLine;
 
-[SerializeField] private int perfectThreshold = 120; // Perfect の範囲
-[SerializeField] private int goodThreshold = 240;    // Good の最大範囲
-
-[SerializeField] private int missThreshold = 360; // AutoMiss発動までの猶予
-
-[SerializeField] private int earlyMissThreshold = 480; // 早すぎる Miss の閾値
-[SerializeField] private int earlyIgnoreThreshold = 600;
-
-
+    [SerializeField] private int perfectThreshold = 120;
+    [SerializeField] private int goodThreshold = 240;
+    [SerializeField] private int missThreshold = 360;
+    [SerializeField] private int earlyMissThreshold = 480;
+    [SerializeField] private int earlyIgnoreThreshold = 600;
 
     public static event Action<string, Vector3> OnJudgment;
 
@@ -44,88 +40,78 @@ public class JudgmentManager : MonoBehaviour
         }
     }
 
-public void ProcessKeyPress(int noteValue)
-{
-    if (!notesGenerator.isReady) return;
-
-    double currentTime = AudioSettings.dspTime;
-    double elapsedTime = currentTime - notesGenerator.startTime;
-    double tickDuration = (60.0 / notesGenerator.midiFilePlayer.MPTK_Tempo) / notesGenerator.TPQN;
-    double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
-    long currentTick = (long)((elapsedTime + offsetSec) / tickDuration);
-
-    NoteController bestNote = null;
-    long bestTickDifference = long.MaxValue;
-
-    foreach (var note in notesGenerator.GetNoteControllers())
+    public void ProcessKeyPress(int noteValue)
     {
-        if (note.noteValue != noteValue) continue;
+        if (!notesGenerator.isReady) return;
 
-        long tickDifference = note.tick - currentTick;
+        double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
+        double dspTime = AudioSettings.dspTime + offsetSec;
+        long currentTick = notesGenerator.GetCurrentTickWithTempo(dspTime);
 
-        // 🎯 超早押しの無視（←ここが重要！）
-    if (tickDifference >= earlyIgnoreThreshold)
-    {
-        Debug.Log($"[IGNORE] ノートはまだ先すぎる: TickDiff={tickDifference}");
-        continue;
-    }
+        NoteController bestNote = null;
+        long bestTickDifference = long.MaxValue;
 
-
-        long absDiff = Math.Abs(tickDifference);
-
-        if (absDiff < Math.Abs(bestTickDifference))
+        foreach (var note in notesGenerator.GetNoteControllers())
         {
-            bestNote = note;
-            bestTickDifference = tickDifference;
+            if (note.noteValue != noteValue) continue;
+
+            long tickDifference = note.tick - currentTick;
+
+            if (tickDifference >= earlyIgnoreThreshold)
+            {
+                Debug.Log($"[IGNORE] ノートはまだ先すぎる: TickDiff={tickDifference}");
+                continue;
+            }
+
+            long absDiff = Math.Abs(tickDifference);
+            if (absDiff < Math.Abs(bestTickDifference))
+            {
+                bestNote = note;
+                bestTickDifference = tickDifference;
+            }
+        }
+
+        if (bestNote != null)
+        {
+            long tickDifference = bestTickDifference;
+            string judgmentResult;
+
+            if (tickDifference < -earlyMissThreshold)
+            {
+                judgmentResult = "Miss";
+            }
+            else if (tickDifference < -perfectThreshold)
+            {
+                judgmentResult = "Good";
+            }
+            else if (tickDifference <= perfectThreshold)
+            {
+                judgmentResult = "Perfect";
+            }
+            else if (tickDifference <= goodThreshold)
+            {
+                judgmentResult = "Good";
+            }
+            else
+            {
+                judgmentResult = "Miss";
+            }
+
+            Debug.Log($"[RESULT] 判定={judgmentResult}, TickDiff={tickDifference}");
+
+            notesGenerator.GetNoteControllers().Remove(bestNote);
+            Destroy(bestNote.gameObject);
+            OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
         }
     }
-
-    if (bestNote != null)
-    {
-        long tickDifference = bestTickDifference;
-        string judgmentResult;
-
-        // 🎯 早すぎる入力に対して Miss 判定
-        if (tickDifference < -earlyMissThreshold)
-        {
-            judgmentResult = "Miss"; // 早すぎるMiss
-        }
-        else if (tickDifference < -perfectThreshold)
-        {
-            judgmentResult = "Good"; // 早めのGood
-        }
-        else if (tickDifference <= perfectThreshold)
-        {
-            judgmentResult = "Perfect";
-        }
-        else if (tickDifference <= goodThreshold)
-        {
-            judgmentResult = "Good"; // 遅めのGood
-        }
-        else
-        {
-            judgmentResult = "Miss"; // 遅すぎるMiss
-        }
-
-        Debug.Log($"[RESULT] 判定={judgmentResult}, TickDiff={tickDifference}");
-
-        notesGenerator.GetNoteControllers().Remove(bestNote);
-        Destroy(bestNote.gameObject);
-        OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
-    }
-}
-
-
 
     private void AutoMissCheck()
     {
         if (notesGenerator == null || !notesGenerator.isReady) return;
 
-        double currentTime = AudioSettings.dspTime;
-        double elapsedTime = currentTime - notesGenerator.startTime;
-        double tickDuration = (60.0 / notesGenerator.midiFilePlayer.MPTK_Tempo) / notesGenerator.TPQN;
         double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
-        long currentTick = (long)((elapsedTime + offsetSec) / tickDuration);
+        double dspTime = AudioSettings.dspTime + offsetSec;
+        long currentTick = notesGenerator.GetCurrentTickWithTempo(dspTime);
 
         var notes = notesGenerator.GetNoteControllers();
         for (int i = notes.Count - 1; i >= 0; i--)

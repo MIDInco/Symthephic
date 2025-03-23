@@ -12,6 +12,14 @@
       "AudioFileName": "Taihaitekikairakubussitsu.wav",
       "IsDLC": true,
       "DLCId": "dlc_pack_01"
+    },
+
+    {
+      "MidiFileName": "Tempo_Test",
+      "DisplayName": "Tempo Test",
+      "AudioFileName": "Tempo_Test.wav",
+      "IsDLC": false,
+      "DLCId": ""
     }
   ]
   
