@@ -8,22 +8,32 @@ public class ReadyUIController : MonoBehaviour
     public float showDuration = 3f;
     public float delayAfterHide = 1f;
 
-    public IEnumerator PlayReadySequence(System.Action onComplete)
+public IEnumerator PlayReadySequence()
+{
+    if (readyText != null)
     {
-        // Ready 表示
-        if (readyText != null)
-        {
-            readyText.text = "Ready"; // フォントやスタイルはインスペクタで
-            readyText.gameObject.SetActive(true);
-        }
-
-        yield return new WaitForSecondsRealtime(showDuration); // 表示時間
-
-        if (readyText != null)
-            readyText.gameObject.SetActive(false);
-
-        yield return new WaitForSecondsRealtime(delayAfterHide); // 表示終了後の余韻時間
-
-        onComplete?.Invoke(); // 完了時のコールバック（再開処理を呼ぶ）
+        readyText.text = "Ready";
+        readyText.gameObject.SetActive(true);
     }
+
+    yield return new WaitForSecondsRealtime(showDuration); // Ready表示時間
+
+    if (readyText != null)
+        readyText.gameObject.SetActive(false);
+
+    yield return new WaitForSecondsRealtime(delayAfterHide); // 余韻
+
+    // ✅ ここでオーディオと譜面を再開
+    if (AudioManager.Instance?.audioSource?.clip != null)
+    {
+        AudioManager.Instance.audioSource.UnPause();
+        Debug.Log("🔊 AudioManager: Ready終了後にUnPauseしました");
+    }
+
+    ChartPlaybackManager chart = FindFirstObjectByType<ChartPlaybackManager>();
+    chart?.ResumeChart();
+
+    // ✅ 必要なら、GameSceneManager などのフラグ更新もここで
+}
+
 }
