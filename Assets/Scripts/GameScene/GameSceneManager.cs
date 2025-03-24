@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Audio;
 public class GameSceneManager : MonoBehaviour
 {
     public static bool IsPaused { get; private set; } = false;
@@ -13,6 +14,8 @@ public class GameSceneManager : MonoBehaviour
     public ReadyUIController readyUIController; // ← インスペクタでアタッチ
 
     public static bool IsResuming { get; private set; } = false;
+
+    public AudioMixer audioMixer; // Inspectorで設定
 
     [SerializeField] private PauseManager pauseManager; // ← インスペクタでアサインする用
 
@@ -54,6 +57,8 @@ void Start()
             Debug.LogError("❌ AudioManager プレハブが Resources/GameScenes に見つかりません！");
         }
     }
+
+    GameSettingsLoader.Load(audioMixer); // ✅ 読み込み + 即反映
 
     // 楽曲オーディオの読み込み
     AudioManager.Instance.PlaySelectedAudio();

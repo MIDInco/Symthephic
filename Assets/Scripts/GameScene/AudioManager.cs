@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
@@ -7,6 +8,10 @@ public class AudioManager : MonoBehaviour
     public AudioSource audioSource;
     public event Action OnAudioPlaybackStarted;
     private bool hasAudioStarted = false;
+
+    public AudioMixer audioMixer; // ← 追加！
+
+    private const string VolumeParameter = "MasterVolume"; // ← AudioMixer のパラメータ名
 
 void Awake()
 {
@@ -28,6 +33,9 @@ void Awake()
     {
         Destroy(gameObject); // ✅ 二重生成を防ぐ
     }
+
+        // 🔊 追加: マスターボリュームを AudioMixer に反映
+    ApplyMasterVolume();
 }
 
 void Start()
@@ -98,4 +106,20 @@ public void PlaySelectedAudio()
             Debug.Log($" - {clip.name}");
         }
     }
+
+    private void ApplyMasterVolume()
+{
+    float value = GameSettings.MasterVolume;
+    float db = Mathf.Lerp(-80f, 0f, Mathf.Pow(value, 0.3f));
+
+    if (audioMixer != null)
+    {
+        audioMixer.SetFloat(VolumeParameter, db);
+        Debug.Log($"🔊 AudioManager: マスターボリュームを適用しました → dB={db}");
+    }
+    else
+    {
+        Debug.LogWarning("⚠ AudioManager: audioMixer が未設定のため、音量を適用できません");
+    }
+}
 }
