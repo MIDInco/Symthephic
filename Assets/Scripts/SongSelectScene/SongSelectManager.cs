@@ -19,6 +19,7 @@ public class SongSelectManager : MonoBehaviour
     // 🎯 楽曲リストを読み込む
 void LoadAvailableSongs()
 {
+    SongManager.AvailableSongs.Clear(); // ← 追加！
     List<MPTKListItem> midiFiles = MidiPlayerGlobal.MPTK_ListMidi;
 
     foreach (var file in midiFiles)
