@@ -23,6 +23,11 @@ public class GameSettingsInitializer : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        ApplySettings(); // 起動直後、確実にMixerに反映させる
+    }
+
     public void ApplySettings()
 {
     if (audioMixer != null)
@@ -31,5 +36,6 @@ public class GameSettingsInitializer : MonoBehaviour
         audioMixer.SetFloat("MasterVolume", db);
         Debug.Log($"🔁 GameSettingsInitializer: 再適用 - MasterVolume={GameSettings.MasterVolume} → dB={db}");
     }
+
 }
 }
