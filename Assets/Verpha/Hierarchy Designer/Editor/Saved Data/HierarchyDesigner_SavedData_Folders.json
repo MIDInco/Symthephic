@@ -1,0 +1,58 @@
+{
+    "items": [
+        {
+            "Name": "Folder",
+            "TextColor": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            },
+            "FontSize": 12,
+            "FontStyle": 0,
+            "ImageColor": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            },
+            "ImageType": 0
+        },
+        {
+            "Name": "Ready",
+            "TextColor": {
+                "r": 1.0,
+                "g": 0.5424528121948242,
+                "b": 0.5424528121948242,
+                "a": 1.0
+            },
+            "FontSize": 12,
+            "FontStyle": 0,
+            "ImageColor": {
+                "r": 1.0,
+                "g": 0.5235849022865295,
+                "b": 0.5235849022865295,
+                "a": 1.0
+            },
+            "ImageType": 0
+        },
+        {
+            "Name": "UI",
+            "TextColor": {
+                "r": 1.0,
+                "g": 0.9820833802223206,
+                "b": 0.46698111295700076,
+                "a": 1.0
+            },
+            "FontSize": 12,
+            "FontStyle": 0,
+            "ImageColor": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            },
+            "ImageType": 0
+        }
+    ]
+}

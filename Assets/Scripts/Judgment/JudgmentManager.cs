@@ -20,11 +20,11 @@ public class JudgmentManager : MonoBehaviour
         ValidateThresholds();
     }
 
-void Update()
-{
-    if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
-    AutoMissCheck();
-}
+    void Update()
+    {
+        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
+        AutoMissCheck();
+    }
 
     private void ValidateThresholds()
     {
@@ -41,76 +41,90 @@ void Update()
         }
     }
 
-public void ProcessKeyPress(int noteValue)
-{
-    if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
-    if (!notesGenerator.isReady) return;
-
-    double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
-    double dspTime = GameSceneManager.GetGameDspTime();
-    long currentTick = notesGenerator.GetCurrentTickWithTempo(dspTime);
-
-    NoteController bestNote = null;
-    long bestTickDifference = long.MaxValue;
-
-    foreach (var note in notesGenerator.GetNoteControllers())
+    public void ProcessKeyPress(int noteValue)
     {
-        if (note.noteValue != noteValue) continue;
+        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
+        if (!notesGenerator.isReady) return;
 
-        long tickDifference = note.tick - currentTick;
+        double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
+        double dspTime = GameSceneManager.GetGameDspTime();
+        long currentTick = notesGenerator.GetCurrentTickWithTempo(dspTime);
 
-        // 遠すぎるノーツは候補に入れない（ログも出さない）
-        if (tickDifference >= earlyIgnoreThreshold)
+        NoteController bestNote = null;
+        long bestTickDifference = long.MaxValue;
+
+        foreach (var note in notesGenerator.GetNoteControllers())
         {
-            continue;
+            if (note.noteValue != noteValue) continue;
+
+            long tickDifference = note.tick - currentTick;
+
+            if (tickDifference >= earlyIgnoreThreshold)
+                continue;
+
+            long absDiff = Math.Abs(tickDifference);
+            if (absDiff < Math.Abs(bestTickDifference))
+            {
+                bestNote = note;
+                bestTickDifference = tickDifference;
+            }
         }
 
-        long absDiff = Math.Abs(tickDifference);
-        if (absDiff < Math.Abs(bestTickDifference))
+        if (bestNote == null)
         {
-            bestNote = note;
-            bestTickDifference = tickDifference;
+            Debug.Log("🟡 判定できるノートが見つかりませんでした（すべて遠すぎ or 判定範囲外）");
+            return;
+        }
+
+        long tickDifferenceFinal = bestTickDifference;
+        string judgmentResult;
+
+        if (tickDifferenceFinal < -earlyMissThreshold)
+        {
+            judgmentResult = "Miss";
+        }
+        else if (tickDifferenceFinal < -perfectThreshold)
+        {
+            judgmentResult = "Good";
+        }
+        else if (tickDifferenceFinal <= perfectThreshold)
+        {
+            judgmentResult = "Perfect";
+        }
+        else if (tickDifferenceFinal <= goodThreshold)
+        {
+            judgmentResult = "Good";
+        }
+        else
+        {
+            judgmentResult = "Miss";
+        }
+
+        Debug.Log($"[RESULT] 判定={judgmentResult}, TickDiff={tickDifferenceFinal}");
+
+        notesGenerator.GetNoteControllers().Remove(bestNote);
+        Destroy(bestNote.gameObject);
+        OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
+
+        // 🎯 スコア・フレーズ通知
+        switch (judgmentResult)
+        {
+            case "Perfect":
+                ScoreManager.Instance?.RegisterPerfect();
+                PhraseManager.Instance?.IncrementPhrase();
+                break;
+
+            case "Good":
+                ScoreManager.Instance?.RegisterGood();
+                PhraseManager.Instance?.IncrementPhrase();
+                break;
+
+            case "Miss":
+                ScoreManager.Instance?.RegisterMiss();
+                PhraseManager.Instance?.ResetPhrase();
+                break;
         }
     }
-
-    // 判定できるノートが見つからなかった場合のみログを出す
-    if (bestNote == null)
-    {
-        Debug.Log("🟡 判定できるノートが見つかりませんでした（すべて遠すぎ or 判定範囲外）");
-        return;
-    }
-
-    long tickDifferenceFinal = bestTickDifference;
-    string judgmentResult;
-
-    if (tickDifferenceFinal < -earlyMissThreshold)
-    {
-        judgmentResult = "Miss";
-    }
-    else if (tickDifferenceFinal < -perfectThreshold)
-    {
-        judgmentResult = "Good";
-    }
-    else if (tickDifferenceFinal <= perfectThreshold)
-    {
-        judgmentResult = "Perfect";
-    }
-    else if (tickDifferenceFinal <= goodThreshold)
-    {
-        judgmentResult = "Good";
-    }
-    else
-    {
-        judgmentResult = "Miss";
-    }
-
-    Debug.Log($"[RESULT] 判定={judgmentResult}, TickDiff={tickDifferenceFinal}");
-
-    notesGenerator.GetNoteControllers().Remove(bestNote);
-    Destroy(bestNote.gameObject);
-    OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
-}
-
 
     private void AutoMissCheck()
     {
@@ -132,6 +146,10 @@ public void ProcessKeyPress(int noteValue)
                 notes.RemoveAt(i);
                 Destroy(note.gameObject);
                 OnJudgment?.Invoke("Miss", note.transform.position);
+
+                // 🎯 自動ミス処理でも通知
+                ScoreManager.Instance?.RegisterMiss();
+                PhraseManager.Instance?.ResetPhrase();
             }
         }
     }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PauseManager : MonoBehaviour
 {
@@ -32,6 +33,15 @@ void Update()
         pauseMenuUI.SetActive(true);
         Time.timeScale = 0f;
         isPaused = true;
+    }
+
+        // ✅ 追加：リスタート処理
+    public void RestartGame()
+    {
+        Debug.Log("🔄 RestartGame関数が呼ばれました");
+
+        Time.timeScale = 1f; // 念のため時間を戻す
+        SceneManager.LoadScene("GameScene"); // 同じシーンを再読み込み
     }
 }
 

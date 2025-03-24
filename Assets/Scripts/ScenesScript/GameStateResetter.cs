@@ -13,6 +13,13 @@ public static class GameStateResetter
             notesGen.ResetState(); // ← さっき追加したメソッド
         }
 
+            // ✅ ScoreManager と PhraseManager のリセット ← ここを追加！
+        ScoreManager score = GameObject.FindFirstObjectByType<ScoreManager>();
+        score?.ResetScore();
+
+        PhraseManager phrase = GameObject.FindFirstObjectByType<PhraseManager>();
+        phrase?.ResetPhrase();
+
         // ✅ SongManager の状態をリセット
         SongManager.SelectedSong = null;
         SongManager.AvailableSongs.Clear();
@@ -30,6 +37,8 @@ public static class GameStateResetter
             GameObject.Destroy(Noteoffset.Instance.gameObject);
             Debug.Log("🗑 Noteoffset を削除しました");
         }
+
+        
 
         // ✅ GameSettings のリセット（必要に応じて）
         //GameSettings.NoteSpeed = 5.0f;

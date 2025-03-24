@@ -138,6 +138,9 @@ void Update()
         CacheTempoEvents(midiLoad);
         GenerateNotes(midiLoad);
         Debug.Log($"✅ ノート生成完了！");
+        
+        // 🟡 スコア用：ノーツ数をスコアマネージャーに通知
+        ScoreManager.Instance?.SetTotalNotes(noteControllers.Count);
 
         double audioStartTime = AudioSettings.dspTime;
         float chartDelayOffset = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
