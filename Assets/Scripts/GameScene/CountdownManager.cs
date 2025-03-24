@@ -8,18 +8,30 @@ public class CountdownManager : MonoBehaviour
     public int countdownTime = 3;
     public ChartPlaybackManager chartPlaybackManager;
 
-    void Start()
+void Start()
+{
+    Debug.Log("🔍 CountdownManager: Start() 開始");
+
+    if (countdownText == null)
     {
-        Debug.Log("🔍 CountdownManager: Start() 開始");
-
-        if (countdownText == null)
-        {
-            Debug.LogError("❌ countdownText が設定されていません！Inspector でアタッチしてください。");
-            return;
-        }
-
-        StartCoroutine(CountdownRoutine());
+        Debug.LogError("❌ countdownText が設定されていません！Inspector でアタッチしてください。");
     }
+    else
+    {
+        Debug.Log($"✅ countdownText = {countdownText.name}");
+    }
+
+    if (chartPlaybackManager == null)
+    {
+        Debug.LogError("❌ chartPlaybackManager が null です！");
+    }
+    else
+    {
+        Debug.Log($"✅ chartPlaybackManager = {chartPlaybackManager.name}");
+    }
+
+    StartCoroutine(CountdownRoutine());
+}
 
     IEnumerator CountdownRoutine()
     {

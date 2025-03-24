@@ -50,8 +50,19 @@ public class NotesGenerator : MonoBehaviour
 
 void Update()
 {
-    if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
-    if (!isReady) return;
+    if (GameSceneManager.IsPaused || GameSceneManager.IsResuming)
+    {
+        Debug.Log("⏸ Update停止中：ポーズ中");
+        return;
+    }
+
+    if (!isReady)
+    {
+        Debug.Log("⏸ Update停止中：isReady が false");
+        return;
+    }
+
+    Debug.Log("▶ Update実行中：ノートを動かします");
 
     double currentTime = GameSceneManager.GetGameDspTime() - startTime;
     noteControllers.RemoveAll(note => note == null);
@@ -243,7 +254,7 @@ void Update()
     }
 
     public void LoadSelectedMidiAndGenerateNotes()
-    {
+    {   //noteSpeed = 5.0f; // テスト用に固定
         noteSpeed = GameSettings.NoteSpeed; // UIスライダー値（0.5〜10.0）
         Debug.Log($"🎯 NoteSpeed が設定されました: {noteSpeed}");
 
@@ -258,4 +269,18 @@ void Update()
             Debug.LogError("❌ NotesGenerator: SongManager.SelectedSong が null です！");
         }
     }
+
+    public void ResetState()
+{
+    isReady = false;
+
+    foreach (var note in noteControllers)
+    {
+        if (note != null)
+            Destroy(note.gameObject);
+    }
+    noteControllers.Clear();
+
+    Debug.Log("🔁 NotesGenerator: 状態を初期化しました（ノート削除 + isReady false）");
+}
 }

@@ -8,28 +8,45 @@ public class AudioManager : MonoBehaviour
     public event Action OnAudioPlaybackStarted;
     private bool hasAudioStarted = false;
 
-    void Awake()
+void Awake()
+{
+    if (Instance == null)
     {
-        if (Instance == null)
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // ✅ 全シーン共通で使う
+
+        if (audioSource == null)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource != null)
+                Debug.Log("🔁 AudioSource を Awake() で復元しました！");
+            else
+                Debug.LogError("❌ AudioManager: AudioSource が見つかりません！（Awake）");
+        }
+    }
+    else
+    {
+        Destroy(gameObject); // ✅ 二重生成を防ぐ
+    }
+}
+
+void Start()
+{
+    if (audioSource == null)
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogError("❌ AudioManager: AudioSource が見つかりません！（Start時）");
         }
         else
         {
-            Destroy(gameObject);
+            Debug.Log("🔁 AudioSource を復元しました！");
         }
     }
+}
 
-    void Start()
-    {
-        if (audioSource == null)
-        {
-            Debug.LogError("❌ AudioManager: AudioSource がアタッチされていません！");
-        }
-    }
-
-   public void PlaySelectedAudio()
+public void PlaySelectedAudio()
 {
     if (SongManager.SelectedSong == null)
     {
@@ -51,12 +68,24 @@ public class AudioManager : MonoBehaviour
         return;
     }
 
+    if (audioSource == null)
+    {
+        Debug.LogError("❌ AudioManager: audioSource が null のため、オーディオを再生できません！");
+        return;
+    }
+
     audioSource.clip = clip;
+
+    // 🎯 再生位置リセット（これが今回の修正点！）
+    audioSource.time = 0f;             // 秒単位で0にリセット
+    // audioSource.timeSamples = 0;   // サンプル単位でリセットしたい場合はこちら（高精度）
+
     hasAudioStarted = false;
     Debug.Log($"✅ AudioManager: オーディオロード成功！{fileNameWithoutExtension}");
 
-    // 🚀 ここでの `audioSource.Play();` を削除する
+    // 🚫 Play はここでは呼ばない（ChartPlaybackManagerが制御）
 }
+
 
 
     // ✅ 追加: Resources/Playlist_Audio 内のオーディオファイル一覧をデバッグ出力

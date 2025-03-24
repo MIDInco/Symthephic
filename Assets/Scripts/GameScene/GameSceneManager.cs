@@ -27,30 +27,43 @@ void Awake()
     {
         Destroy(gameObject);
     }
+
+    // ✅ ポーズ状態をリセット！
+    IsPaused = false;
+    IsResuming = false;
+    totalPausedDuration = 0.0;
+    pausedStartTime = 0.0;
+
+    Debug.Log("🔁 GameSceneManager: Awake() でポーズ状態をリセットしました");
 }
 
-    void Start()
+void Start()
+{
+    if (AudioManager.Instance == null)
     {
-        Debug.Log("🎯 GameSceneManager: Start() 実行");
-
-        if (SongManager.SelectedSong == null)
+        GameObject prefab = Resources.Load<GameObject>("GameScenes/AudioManager");
+        if (prefab != null)
         {
-            Debug.LogError("❌ GameSceneManager: SongManager.SelectedSong が null です！");
-            return;
+            Instantiate(prefab);
+            Debug.Log("🎮 AudioManager を GameScene で生成しました！");
         }
-
-        Debug.Log($"🎶 選択された曲: {SongManager.SelectedSong.DisplayName} (MIDI: {SongManager.SelectedSong.MidiFileName}, Audio: {SongManager.SelectedSong.AudioFileName})");
-
-        // ✅ オーディオの読み込み
-        AudioManager.Instance.PlaySelectedAudio();
-
-        // ✅ MIDI譜面の読み込み
-        NotesGenerator generator = FindFirstObjectByType<NotesGenerator>();
-        if (generator != null)
+        else
         {
-            generator.LoadSelectedMidiAndGenerateNotes();
+            Debug.LogError("❌ AudioManager プレハブが Resources/GameScenes に見つかりません！");
         }
     }
+
+    // 楽曲オーディオの読み込み
+    AudioManager.Instance.PlaySelectedAudio();
+
+    // 譜面ロードなど
+    NotesGenerator generator = FindFirstObjectByType<NotesGenerator>();
+    if (generator != null)
+    {
+        generator.LoadSelectedMidiAndGenerateNotes();
+    }
+}
+
 
     // 🎯 ポーズ中を考慮した「ゲーム内dspTime」を返す
     public static double GetGameDspTime()

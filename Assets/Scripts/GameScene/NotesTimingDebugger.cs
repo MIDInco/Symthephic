@@ -13,7 +13,7 @@ public class NotesTimingDebugger : MonoBehaviour
     {
         if (notesGenerator == null)
         {
-            Debug.LogError("[NotesTimingDebugger] ❌ NotesGenerator が設定されていません。");
+          //  Debug.LogError("[NotesTimingDebugger] ❌ NotesGenerator が設定されていません。");
             return;
         }
 

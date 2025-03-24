@@ -10,11 +10,25 @@ public class SongSelectManager : MonoBehaviour
     public Transform songListParent;    // 🎯 ScrollView のコンテナ
     public MidiFilePlayer midiPlayer;   // 🎯 MPTKのMIDIプレイヤー
 
-    void Start()
+void Start()
+{
+    if (AudioManager.Instance == null)
     {
-        LoadAvailableSongs();
-        DisplaySongList();
+        GameObject prefab = Resources.Load<GameObject>("GameScenes/AudioManager");
+        if (prefab != null)
+        {
+            Instantiate(prefab);
+            Debug.Log("🎶 AudioManager を SongSelectScene で生成しました！");
+        }
+        else
+        {
+            Debug.LogError("❌ AudioManager プレハブが Resources/GameScenes に見つかりません！");
+        }
     }
+
+    LoadAvailableSongs();
+    DisplaySongList();
+}
 
     // 🎯 楽曲リストを読み込む
 void LoadAvailableSongs()
