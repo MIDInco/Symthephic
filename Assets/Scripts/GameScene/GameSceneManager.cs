@@ -39,6 +39,8 @@ void Awake()
 
 void Start()
 {
+
+    GameSettingsLoader.Load(); // ← これを最初に追加！
     if (AudioManager.Instance == null)
     {
         GameObject prefab = Resources.Load<GameObject>("GameScenes/AudioManager");
