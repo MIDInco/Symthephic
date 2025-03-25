@@ -29,6 +29,7 @@ public class GameSettingsUIController : MonoBehaviour
     public TextMeshProUGUI chartDelayLabel;
     private const string ChartDelayKey = "ChartDelay";
 
+
     public void OnMasterVolumeSliderChanged(float value)
 {
     SetVolume(value);
@@ -45,6 +46,11 @@ public class GameSettingsUIController : MonoBehaviour
 
     void Start()
     {
+    masterVolumeSlider.onValueChanged.AddListener(UpdateVolumeLabel);
+    speedSlider.onValueChanged.AddListener(UpdateLabel);
+    noteOffsetSlider.onValueChanged.AddListener(OnNoteOffsetChanged);
+    chartDelaySlider.onValueChanged.AddListener(OnChartDelayChanged);
+
         // マスターボリューム設定の復元
     float savedVolume = PlayerPrefs.GetFloat(VolumeKey, 0.8f);
     masterVolumeSlider.value = savedVolume;
@@ -63,13 +69,12 @@ public class GameSettingsUIController : MonoBehaviour
     float savedNoteOffset = PlayerPrefs.GetFloat(NoteOffsetKey, 0.0f);
     noteOffsetSlider.value = savedNoteOffset;
     noteOffsetSlider.onValueChanged.AddListener(OnNoteOffsetChanged);
-    noteOffsetLabel.text = $"判定補正: {savedNoteOffset:F3}s";
+
 
     // チャートディレイ補正（ChartDelay）の復元
-    float savedChartDelay = PlayerPrefs.GetFloat(ChartDelayKey, 0.0f);
+    float savedChartDelay = PlayerPrefs.GetFloat(ChartDelayKey, GameSettings.ChartDelay);
     chartDelaySlider.value = savedChartDelay;
     chartDelaySlider.onValueChanged.AddListener(OnChartDelayChanged);
-    chartDelayLabel.text = $"チャート遅延: {savedChartDelay:F3}s";
 
     // Noteoffset に値を反映（あれば）
     if (Noteoffset.Instance != null)
@@ -77,6 +82,12 @@ public class GameSettingsUIController : MonoBehaviour
         Noteoffset.Instance.SetNoteOffsetValue(savedNoteOffset);
         Noteoffset.Instance.chartDelay = savedChartDelay;
     }
+    UpdateVolumeLabel(masterVolumeSlider.value);
+    UpdateLabel(speedSlider.value);
+    OnNoteOffsetChanged(noteOffsetSlider.value);
+    OnChartDelayChanged(chartDelaySlider.value);
+
+
     }
 
     public void OpenPanel()
@@ -93,6 +104,20 @@ public class GameSettingsUIController : MonoBehaviour
     {
         Debug.Log("❎ ClosePanel() が呼び出されました");
         settingPanel.SetActive(false);
+
+        // 現在のスライダーの値を保存
+        float volume = masterVolumeSlider.value;
+        float speed = speedSlider.value;
+        float offset = noteOffsetSlider.value;
+        float delay = chartDelaySlider.value;
+
+        PlayerPrefs.SetFloat("MasterVolume", volume);
+        PlayerPrefs.SetFloat("NoteSpeed", speed);
+        PlayerPrefs.SetFloat("NoteOffsetValue", offset);
+        PlayerPrefs.SetFloat("ChartDelay", delay);
+        PlayerPrefs.Save();
+
+        Debug.Log($"💾 設定を保存しました: Volume={volume}, Speed={speed}, Offset={offset}, Delay={delay}");
     }
 
     void OnSpeedChanged(float value)
@@ -107,8 +132,7 @@ public class GameSettingsUIController : MonoBehaviour
 
     void UpdateLabel(float value)
     {
-        if (speedLabel != null)
-            speedLabel.text = $"現在のスピード: {value:0.0}x";
+        speedLabel.text = $"ノートスピード: {value:0.0}x";
     }
 
 /// <summary>
@@ -140,28 +164,21 @@ public void SetVolume(float value)
 
 void UpdateVolumeLabel(float value)
 {
-    if (volumeLabel != null)
-    {
-        volumeLabel.text = $"全体音量：{(value * 100f):0}%";
-    }
+    volumeLabel.text = $"全体音量: {(value * 100f):0}%";
 }
 
 void OnNoteOffsetChanged(float value)
 {
-    PlayerPrefs.SetFloat(NoteOffsetKey, value);
-    PlayerPrefs.Save();
-    noteOffsetLabel.text = $"判定補正: {value:F3}s";
-
+    noteOffsetLabel.text = $"判定タイミング補正: {(value >= 0 ? "+" : "")}{value:F3}s";
     if (Noteoffset.Instance != null)
         Noteoffset.Instance.SetNoteOffsetValue(value);
 }
 
+
+
 void OnChartDelayChanged(float value)
 {
-    PlayerPrefs.SetFloat(ChartDelayKey, value);
-    PlayerPrefs.Save();
-    chartDelayLabel.text = $"チャート遅延: {value:F3}s";
-
+    chartDelayLabel.text = $"チャート遅延補正: {(value >= 0 ? "+" : "")}{value:F3}s";
     if (Noteoffset.Instance != null)
         Noteoffset.Instance.chartDelay = value;
 }
