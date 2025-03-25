@@ -48,18 +48,25 @@ void Awake()
 
 private void Update()
 {
-    if (audioSource != null && hasAudioStarted)
+    if (audioSource != null)
     {
+        // 再生が始まったらフラグを立てる
+        if (audioSource.isPlaying && !hasAudioStarted)
+        {
+            hasAudioStarted = true;
+        }
+
         // 🎯 曲が完全に再生しきったかをチェック
-        bool isPlaybackFinished = 
-            !audioSource.isPlaying &&                        // 再生が止まっていて
+        bool isPlaybackFinished =
+            hasAudioStarted &&
+            !audioSource.isPlaying &&
             audioSource.clip != null &&
-            audioSource.time >= audioSource.clip.length - 0.1f && // 再生位置がほぼ末尾
-            !GameSceneManager.IsPaused;                      // ポーズ中でない
+            audioSource.timeSamples >= audioSource.clip.samples - 1000 && // 約0.02秒の余裕
+            !GameSceneManager.IsPaused;
 
         if (isPlaybackFinished)
         {
-            Debug.Log("🎵 AudioManager: 曲の再生が完了しました（自動終了）！");
+            Debug.Log("🎵 AudioManager: 曲の再生が完了しました（timeSamplesベース）！");
             hasAudioStarted = false;
 
             if (GameSceneManager.Instance != null)
@@ -73,12 +80,9 @@ private void Update()
                 transitionManager?.LoadResultScene();
             }
         }
-        else if (audioSource.isPlaying && !hasAudioStarted)
-        {
-            hasAudioStarted = true;
-        }
     }
 }
+
 
 
 void Start()

@@ -5,20 +5,18 @@ public class SceneTransitionManager : MonoBehaviour
 {
     public void LoadMusicSelectScene()
     {
-        Debug.Log("🎯 LoadMusicSelectScene() が呼ばれました！"); // ✅ メソッドが実行されたことを確認
+        Debug.Log("🎯 LoadMusicSelectScene() が呼ばれました！");
 
         if (Application.CanStreamedLevelBeLoaded("MusicSelectScene"))
         {
             Debug.Log("✅ MusicSelectScene のロードを開始します！");
-            SceneManager.LoadScene("MusicSelectScene"); // 🎯 シーン遷移
+            SceneManager.LoadScene("MusicSelectScene");
         }
         else
         {
             Debug.LogError("❌ MusicSelectScene が Build Settings に追加されていません！");
         }
     }
-
-    
 
     public void LoadResultScene()
     {
@@ -33,5 +31,20 @@ public class SceneTransitionManager : MonoBehaviour
         {
             Debug.LogError("❌ ResultScene が Build Settings に追加されていません！");
         }
-}
+    }
+
+    public void LoadGameScene()
+    {
+        Debug.Log("🎯 LoadGameScene() が呼ばれました！");
+
+        if (Application.CanStreamedLevelBeLoaded("GameScene"))
+        {
+            Debug.Log("✅ GameScene のロードを開始します！");
+            SceneManager.LoadScene("GameScene");
+        }
+        else
+        {
+            Debug.LogError("❌ GameScene が Build Settings に追加されていません！");
+        }
+    }
 }

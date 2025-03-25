@@ -39,9 +39,16 @@ void HandlePauseToggle()
 {
     if (GameSceneManager.Instance == null) return;
 
+    PauseManager pauseManager = FindAnyObjectByType<PauseManager>();
+    if (pauseManager == null)
+    {
+        Debug.LogWarning("❌ PauseManager が見つかりません！");
+        return;
+    }
+
     if (GameSceneManager.IsPaused)
-        GameSceneManager.Instance.ResumeGame();
+        pauseManager.Resume(); // ✅ UIを閉じてからResume処理
     else
-        GameSceneManager.Instance.PauseGame();
+        GameSceneManager.Instance.PauseGame(); // ✅ Pause中にUIを出すのはGameSceneManager経由でPauseManagerが行っている
 }
 }

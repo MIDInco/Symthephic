@@ -101,24 +101,20 @@ public class GameSceneManager : MonoBehaviour
         }
     }
 
-    public void ResumeGame()
+public void ResumeGame()
+{
+    if (!IsPaused) return;
+
+    if (Instance != null)
     {
-        if (!IsPaused) return;
-
-        if (Instance != null)
-        {
-            StartCoroutine(ResumeWithDelay());
-
-            if (pauseManager != null)
-            {
-                pauseManager.Resume();
-            }
-        }
-        else
-        {
-            Debug.LogError("❌ GameSceneManager.Instance が null です。Resume できません！");
-        }
+        StartCoroutine(ResumeWithDelay()); // ✅ これだけでOK（ReadyUIControllerで3+1秒の待機が入る）
     }
+    else
+    {
+        Debug.LogError("❌ GameSceneManager.Instance が null です。Resume できません！");
+    }
+}
+
 
     private void ResumeNow()
     {

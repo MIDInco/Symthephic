@@ -19,6 +19,16 @@ public class GameSettingsUIController : MonoBehaviour
     private const string VolumeKey = "MasterVolume";
     private const string VolumeParameter = "MasterVolume"; // AudioMixer上のパラメータ名
 
+    [Header("判定タイミング補正")]
+    public Slider noteOffsetSlider;
+    public TextMeshProUGUI noteOffsetLabel;
+    private const string NoteOffsetKey = "NoteOffsetValue";
+
+    [Header("チャートディレイ補正")]
+    public Slider chartDelaySlider;
+    public TextMeshProUGUI chartDelayLabel;
+    private const string ChartDelayKey = "ChartDelay";
+
     public void OnMasterVolumeSliderChanged(float value)
 {
     SetVolume(value);
@@ -41,13 +51,32 @@ public class GameSettingsUIController : MonoBehaviour
     SetVolume(savedVolume);
     masterVolumeSlider.onValueChanged.AddListener(SetVolume);
 
-        // 保存されたスピードを読み込み（なければ5.0をデフォルト）
-        float savedSpeed = PlayerPrefs.GetFloat(SpeedKey, 5.0f);
+        // 保存されたスピードを読み込み（なければ10.0をデフォルト）
+        float savedSpeed = PlayerPrefs.GetFloat(SpeedKey, 10.0f);
         GameSettings.NoteSpeed = savedSpeed;
 
         speedSlider.value = savedSpeed;
         speedSlider.onValueChanged.AddListener(OnSpeedChanged);
         UpdateLabel(savedSpeed);
+
+            // 判定タイミング補正（NoteOffsetValue）の復元
+    float savedNoteOffset = PlayerPrefs.GetFloat(NoteOffsetKey, 0.0f);
+    noteOffsetSlider.value = savedNoteOffset;
+    noteOffsetSlider.onValueChanged.AddListener(OnNoteOffsetChanged);
+    noteOffsetLabel.text = $"判定補正: {savedNoteOffset:F3}s";
+
+    // チャートディレイ補正（ChartDelay）の復元
+    float savedChartDelay = PlayerPrefs.GetFloat(ChartDelayKey, 0.0f);
+    chartDelaySlider.value = savedChartDelay;
+    chartDelaySlider.onValueChanged.AddListener(OnChartDelayChanged);
+    chartDelayLabel.text = $"チャート遅延: {savedChartDelay:F3}s";
+
+    // Noteoffset に値を反映（あれば）
+    if (Noteoffset.Instance != null)
+    {
+        Noteoffset.Instance.SetNoteOffsetValue(savedNoteOffset);
+        Noteoffset.Instance.chartDelay = savedChartDelay;
+    }
     }
 
     public void OpenPanel()
@@ -117,6 +146,27 @@ void UpdateVolumeLabel(float value)
     }
 }
 
+void OnNoteOffsetChanged(float value)
+{
+    PlayerPrefs.SetFloat(NoteOffsetKey, value);
+    PlayerPrefs.Save();
+    noteOffsetLabel.text = $"判定補正: {value:F3}s";
+
+    if (Noteoffset.Instance != null)
+        Noteoffset.Instance.SetNoteOffsetValue(value);
+}
+
+void OnChartDelayChanged(float value)
+{
+    PlayerPrefs.SetFloat(ChartDelayKey, value);
+    PlayerPrefs.Save();
+    chartDelayLabel.text = $"チャート遅延: {value:F3}s";
+
+    if (Noteoffset.Instance != null)
+        Noteoffset.Instance.chartDelay = value;
+}
+
+
 //~~~~~~~~~~~~~~~リセットボタンはなるべく最後に奥！~~~~~~~~~~~~~~~~~~~~~~//
 
 public void ResetSettings()
@@ -132,6 +182,13 @@ public void ResetSettings()
     // 保存（※SetVolume/OnSpeedChangedの中で保存されるのでここでは不要）
 
     Debug.Log("🔁 設定をリセットしました");
+
+    float defaultNoteOffset = 0.0f;
+    float defaultChartDelay = 0.1f;
+
+    // スライダー更新（ハンドラが自動的に呼ばれる）
+    noteOffsetSlider.value = defaultNoteOffset;
+    chartDelaySlider.value = defaultChartDelay;
 }
 
 }
