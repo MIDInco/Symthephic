@@ -48,25 +48,35 @@ void Awake()
 
 private void Update()
 {
-    if (audioSource != null && hasAudioStarted && !audioSource.isPlaying)
+    if (audioSource != null && hasAudioStarted)
     {
-        Debug.Log("🎵 AudioManager: オーディオの再生が終了しました！");
-        hasAudioStarted = false;
+        // 🎯 曲が完全に再生しきったかをチェック
+        bool isPlaybackFinished = 
+            !audioSource.isPlaying &&                        // 再生が止まっていて
+            audioSource.clip != null &&
+            audioSource.time >= audioSource.clip.length - 0.1f && // 再生位置がほぼ末尾
+            !GameSceneManager.IsPaused;                      // ポーズ中でない
 
-        // リザルトシーンへ遷移（SceneTransitionManager を呼び出し）
-        SceneTransitionManager transitionManager = FindObjectOfType<SceneTransitionManager>();
-        if (transitionManager != null)
+        if (isPlaybackFinished)
         {
-            transitionManager.LoadResultScene();
+            Debug.Log("🎵 AudioManager: 曲の再生が完了しました（自動終了）！");
+            hasAudioStarted = false;
+
+            if (GameSceneManager.Instance != null)
+            {
+                GameSceneManager.Instance.EndGameAndTransitionToResult();
+            }
+            else
+            {
+                Debug.LogWarning("⚠ GameSceneManager.Instance が null のため、直接 ResultScene に遷移します");
+                SceneTransitionManager transitionManager = FindFirstObjectByType<SceneTransitionManager>();
+                transitionManager?.LoadResultScene();
+            }
         }
-        else
+        else if (audioSource.isPlaying && !hasAudioStarted)
         {
-            Debug.LogError("❌ SceneTransitionManager がシーンに存在しません！");
+            hasAudioStarted = true;
         }
-    }
-    else if (audioSource != null && audioSource.isPlaying && !hasAudioStarted)
-    {
-        hasAudioStarted = true;
     }
 }
 

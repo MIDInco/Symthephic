@@ -17,6 +17,8 @@ public class ScoreManager : MonoBehaviour
     private int perfectCount = 0;
     private int goodCount = 0;
     private int missCount = 0;
+
+    private int maxPhrase = 0;
     
 
     void Awake()
@@ -94,4 +96,8 @@ public class ScoreManager : MonoBehaviour
         if (resultText != null)
             resultText.text = "";
     }
+    public float GetCurrentScorePercent()
+{
+    return currentScorePercent;
+}
 }

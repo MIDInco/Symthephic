@@ -8,6 +8,7 @@ public class PhraseManager : MonoBehaviour
     public TextMeshProUGUI phraseText; // UI表示用
 
     private int currentPhrase = 0;
+    private int maxPhrase = 0;
 
     void Awake()
     {
@@ -23,9 +24,11 @@ public class PhraseManager : MonoBehaviour
     public void IncrementPhrase()
     {
         currentPhrase++;
+        if (currentPhrase > maxPhrase)
+        maxPhrase = currentPhrase;
+
         UpdatePhraseDisplay();
     }
-
     /// <summary>
     /// ミス時またはリセット時に呼び出し：Phraseリセット
     /// </summary>
@@ -50,4 +53,9 @@ public class PhraseManager : MonoBehaviour
     {
         return currentPhrase;
     }
+
+public int GetMaxPhrase()
+{
+    return maxPhrase;
+}
 }

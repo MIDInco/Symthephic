@@ -169,4 +169,24 @@ public class GameSceneManager : MonoBehaviour
         IsResuming = false;
         Debug.Log("✅ GameSceneManager: NotifyResumed() でポーズ解除を確定しました");
     }
+
+public void EndGameAndTransitionToResult()
+{
+    float score = ScoreManager.Instance.GetCurrentScorePercent();
+    int phrase = PhraseManager.Instance.GetMaxPhrase();
+
+    Debug.Log($"🧪 [GameSceneManager] スコア取得: {score:0.0}%, フレーズ: x{phrase}");
+
+    GameResultData.ScorePercent = score;
+    GameResultData.MaxPhrase = phrase;
+
+    Debug.Log($"✅ [GameSceneManager] 保存完了: Score={GameResultData.ScorePercent}, Phrase={GameResultData.MaxPhrase}");
+
+    SceneTransitionManager transitionManager = FindAnyObjectByType<SceneTransitionManager>();
+    if (transitionManager != null)
+    {
+        transitionManager.LoadResultScene();
+    }
+}
+
 }
