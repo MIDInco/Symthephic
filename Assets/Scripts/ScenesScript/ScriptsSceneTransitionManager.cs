@@ -17,4 +17,21 @@ public class SceneTransitionManager : MonoBehaviour
             Debug.LogError("❌ MusicSelectScene が Build Settings に追加されていません！");
         }
     }
+
+    
+
+    public void LoadResultScene()
+    {
+        Debug.Log("🎯 LoadResultScene() が呼ばれました！");
+
+        if (Application.CanStreamedLevelBeLoaded("ResultScene"))
+        {
+            Debug.Log("✅ ResultScene のロードを開始します！");
+            SceneManager.LoadScene("ResultScene");
+        }
+        else
+        {
+            Debug.LogError("❌ ResultScene が Build Settings に追加されていません！");
+        }
+}
 }

@@ -46,6 +46,30 @@ void Awake()
     ApplyMasterVolume();
 }
 
+private void Update()
+{
+    if (audioSource != null && hasAudioStarted && !audioSource.isPlaying)
+    {
+        Debug.Log("🎵 AudioManager: オーディオの再生が終了しました！");
+        hasAudioStarted = false;
+
+        // リザルトシーンへ遷移（SceneTransitionManager を呼び出し）
+        SceneTransitionManager transitionManager = FindObjectOfType<SceneTransitionManager>();
+        if (transitionManager != null)
+        {
+            transitionManager.LoadResultScene();
+        }
+        else
+        {
+            Debug.LogError("❌ SceneTransitionManager がシーンに存在しません！");
+        }
+    }
+    else if (audioSource != null && audioSource.isPlaying && !hasAudioStarted)
+    {
+        hasAudioStarted = true;
+    }
+}
+
 
 void Start()
 {
