@@ -427,7 +427,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 993070009}
         m_TargetAssemblyTypeName: SceneTransitionManager, Assembly-CSharp
-        m_MethodName: LoadSongSelectScene
+        m_MethodName: LoadMusicSelectScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

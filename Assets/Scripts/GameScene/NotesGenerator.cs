@@ -3,6 +3,7 @@ using MidiPlayerTK;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
+using MPTKDemoCatchMusic;
 
 public class NotesGenerator : MonoBehaviour
 {
@@ -39,9 +40,9 @@ public class NotesGenerator : MonoBehaviour
 
     void Start()
     {
-        if (SongManager.SelectedSong != null)
+        if (MusicManager.SelectedMusic != null)
         {
-            Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを受け取りました → {SongManager.SelectedSong.MidiFileName}");
+            Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを受け取りました → {MusicManager.SelectedMusic.MidiFileName}");
             Debug.Log("⏳ ただし、譜面の生成は ChartPlaybackManager に任せるため、ここでは実行しません。");
         }
         else
@@ -269,10 +270,10 @@ void Update()
         noteSpeed = GameSettings.NoteSpeed; // UIスライダー値（0.5〜10.0）
         Debug.Log($"🎯 NoteSpeed が設定されました: {noteSpeed}");
 
-        if (SongManager.SelectedSong != null)
+        if (MusicManager.SelectedMusic != null)
         {
-            Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを読み込みます → {SongManager.SelectedSong.MidiFileName}");
-            midiFilePlayer.MPTK_MidiName = SongManager.SelectedSong.MidiFileName;
+            Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを読み込みます → {MusicManager.SelectedMusic.MidiFileName}");
+            midiFilePlayer.MPTK_MidiName = MusicManager.SelectedMusic.MidiFileName;
             StartCoroutine(LoadMidiFileAsync());
         }
         else

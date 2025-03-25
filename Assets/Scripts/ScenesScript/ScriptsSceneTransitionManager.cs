@@ -3,18 +3,18 @@ using UnityEngine.SceneManagement;
 
 public class SceneTransitionManager : MonoBehaviour
 {
-    public void LoadSongSelectScene()
+    public void LoadMusicSelectScene()
     {
-        Debug.Log("🎯 LoadSongSelectScene() が呼ばれました！"); // ✅ メソッドが実行されたことを確認
+        Debug.Log("🎯 LoadMusicSelectScene() が呼ばれました！"); // ✅ メソッドが実行されたことを確認
 
-        if (Application.CanStreamedLevelBeLoaded("SongSelectScene"))
+        if (Application.CanStreamedLevelBeLoaded("MusicSelectScene"))
         {
-            Debug.Log("✅ SongSelectScene のロードを開始します！");
-            SceneManager.LoadScene("SongSelectScene"); // 🎯 シーン遷移
+            Debug.Log("✅ MusicSelectScene のロードを開始します！");
+            SceneManager.LoadScene("MusicSelectScene"); // 🎯 シーン遷移
         }
         else
         {
-            Debug.LogError("❌ SongSelectScene が Build Settings に追加されていません！");
+            Debug.LogError("❌ MusicSelectScene が Build Settings に追加されていません！");
         }
     }
 }

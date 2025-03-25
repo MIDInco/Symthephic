@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public class SongData
+public class MusicData
 {
     public string MidiFileName;
     public string DisplayName;
@@ -9,7 +9,7 @@ public class SongData
     public bool IsDLC;
     public string DLCId;
 
-    public SongData(string midiFileName, string displayName, string audioFileName, bool isDLC = false, string dlcId = "")
+    public MusicData(string midiFileName, string displayName, string audioFileName, bool isDLC = false, string dlcId = "")
     {
         MidiFileName = midiFileName;
         DisplayName = displayName;
@@ -18,4 +18,3 @@ public class SongData
         DLCId = dlcId;
     }
 }
-

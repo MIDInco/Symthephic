@@ -3,67 +3,59 @@ using UnityEngine.SceneManagement;
 
 public class PauseManager : MonoBehaviour
 {
-    public GameObject pauseMenuUI; // ポーズ用UI（ボタン含む Canvas）
-    public ReadyUIController readyUIController; // ✅ Ready演出を制御するコンポーネント（インスペクタで指定）
+    public GameObject pauseMenuUI;
+    public ReadyUIController readyUIController;
 
     private bool isPaused = false;
 
-    void Update()
+    public void Resume()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        pauseMenuUI.SetActive(false);
+        isPaused = false;
+
+        if (readyUIController != null)
         {
-            if (isPaused)
-                Resume();
-            else
-                Pause();
+            StartCoroutine(readyUIController.PlayReadySequence(() =>
+            {
+                Time.timeScale = 1f;
+                AudioManager.Instance?.audioSource?.UnPause();
+                FindAnyObjectByType<ChartPlaybackManager>()?.ResumeChart();
+            }));
         }
-    }
-public void Resume()
-{
-    Debug.Log("Resume関数が呼ばれました");
-
-    pauseMenuUI.SetActive(false);
-    isPaused = false;
-
-    // ✅ Readyが終わったら Time.timeScale を戻す
-    if (readyUIController != null)
-    {
-        StartCoroutine(readyUIController.PlayReadySequence(() =>
+        else
         {
             Time.timeScale = 1f;
-            Debug.Log("▶ PauseManager: Ready終了後に Time.timeScale = 1f に戻しました");
-        }));
+            AudioManager.Instance?.audioSource?.UnPause();
+            FindAnyObjectByType<ChartPlaybackManager>()?.ResumeChart();
+        }
     }
-    else
-    {
-        Debug.LogWarning("⚠ ReadyUIController が未設定のため、即再開");
-        Time.timeScale = 1f;
-        AudioManager.Instance?.audioSource?.UnPause();
-        FindAnyObjectByType<ChartPlaybackManager>()?.ResumeChart();
-    }
-}
-
 
     public void Pause()
     {
-        Debug.Log("Pause関数が呼ばれました");
         pauseMenuUI.SetActive(true);
         Time.timeScale = 0f;
         isPaused = true;
 
-        if (AudioManager.Instance?.audioSource?.isPlaying == true)
-        {
-            AudioManager.Instance.audioSource.Pause();
-            Debug.Log("🔇 AudioManager: AudioをPauseしました");
-        }
-
+        AudioManager.Instance?.audioSource?.Pause();
         FindAnyObjectByType<ChartPlaybackManager>()?.PauseChart();
     }
 
     public void RestartGame()
     {
-        Debug.Log("🔄 RestartGame関数が呼ばれました");
         Time.timeScale = 1f;
         SceneManager.LoadScene("GameScene");
     }
+
+    public void BackToMusicSelect()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MusicSelectScene");
+    }
+
+    public void BackToTitle()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("TitleScene");
+    }
 }
+

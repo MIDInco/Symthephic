@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/TitleScene.unity
     guid: 8130985644481584b888b4c258792fc8
   - enabled: 1
-    path: Assets/Scenes/SongSelectScene.unity
+    path: Assets/Scenes/MusicSelectScene.unity
     guid: 787298d28414d994d89d569143c6c596
   - enabled: 1
     path: Assets/Scenes/GameScene.unity

@@ -20,9 +20,9 @@ public static class GameStateResetter
         PhraseManager phrase = GameObject.FindFirstObjectByType<PhraseManager>();
         phrase?.ResetPhrase();
 
-        // ✅ SongManager の状態をリセット
-        SongManager.SelectedSong = null;
-        SongManager.AvailableSongs.Clear();
+        // ✅ MusicManager の状態をリセット
+        MusicManager.SelectedMusic = null;
+        MusicManager.AvailableMusics.Clear();
 
         // ✅ AudioManager を削除（DontDestroyOnLoad対策）
         if (AudioManager.Instance != null)

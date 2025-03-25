@@ -65,13 +65,13 @@ void Start()
 
 public void PlaySelectedAudio()
 {
-    if (SongManager.SelectedSong == null)
+    if (MusicManager.SelectedMusic == null)
     {
-        Debug.LogError("❌ AudioManager: SongManager.SelectedSong が null です！");
+        Debug.LogError("❌ AudioManager: MusicManager.SelectedSong が null です！");
         return;
     }
 
-    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(SongManager.SelectedSong.AudioFileName);
+    string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(MusicManager.SelectedMusic.AudioFileName);
     string path = "Playlist_Audio/" + fileNameWithoutExtension;
 
     Debug.Log($"🎵 AudioManager: {path} からオーディオをロード");
