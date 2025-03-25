@@ -13,7 +13,6 @@ public class ChartPlaybackManager : MonoBehaviour
     {
         Debug.Log($"✅ ChartPlaybackManager: Start() 実行 (GameObject: {gameObject.name})");
 
-        // **NotesGenerator の参照をチェック**
         if (notesGenerator == null)
         {
             Debug.LogError("❌ ChartPlaybackManager: NotesGenerator が設定されていません！");
@@ -58,5 +57,21 @@ public class ChartPlaybackManager : MonoBehaviour
 
         notesGenerator.SetStartTime(adjustedStartTime);
         notesGenerator.StartPlayback();
+    }
+
+    public void PauseChart()
+    {
+        notesGenerator?.PausePlayback();
+    }
+
+    public void ResumeChart()
+    {
+        if (AudioManager.Instance?.audioSource?.clip != null)
+        {
+            AudioManager.Instance.audioSource.UnPause();
+            Debug.Log("🔊 AudioManager: ResumeChart で UnPause しました");
+        }
+
+        notesGenerator?.ResumePlayback();
     }
 }

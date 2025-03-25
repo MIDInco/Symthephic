@@ -18,7 +18,7 @@ void Awake()
     if (Instance == null)
     {
         Instance = this;
-        DontDestroyOnLoad(gameObject); // ✅ 全シーン共通で使う
+        DontDestroyOnLoad(gameObject);
 
         if (audioSource == null)
         {
@@ -28,15 +28,24 @@ void Awake()
             else
                 Debug.LogError("❌ AudioManager: AudioSource が見つかりません！（Awake）");
         }
+
+        // 追加ここから
+        Debug.Log($"🎧 AudioManager 初期化: GameObject = {gameObject.name}, InstanceID = {GetInstanceID()}");
+        if (audioSource != null)
+        {
+            Debug.Log($"🎵 AudioSource 状態: clip={audioSource.clip?.name}, isPlaying={audioSource.isPlaying}");
+        }
+        // 追加ここまで
     }
     else
     {
-        Destroy(gameObject); // ✅ 二重生成を防ぐ
+        Debug.LogWarning("⚠ AudioManager: 重複したインスタンスが生成されました。破棄します。");
+        Destroy(gameObject);
     }
 
-        // 🔊 追加: マスターボリュームを AudioMixer に反映
     ApplyMasterVolume();
 }
+
 
 void Start()
 {

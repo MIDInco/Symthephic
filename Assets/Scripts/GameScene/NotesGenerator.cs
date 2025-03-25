@@ -30,6 +30,8 @@ public class NotesGenerator : MonoBehaviour
 
     public JudgmentManager judgmentManager;
 
+    private bool isPaused = false;
+
     void Awake()
     {
         Debug.Log("✅ NotesGenerator の Awake が実行されました");
@@ -52,17 +54,17 @@ void Update()
 {
     if (GameSceneManager.IsPaused || GameSceneManager.IsResuming)
     {
-        Debug.Log("⏸ Update停止中：ポーズ中");
+        //Debug.Log("⏸ Update停止中：ポーズ中");
         return;
     }
 
     if (!isReady)
     {
-        Debug.Log("⏸ Update停止中：isReady が false");
+        //Debug.Log("⏸ Update停止中：isReady が false");
         return;
     }
 
-    Debug.Log("▶ Update実行中：ノートを動かします");
+    //ebug.Log("▶ Update実行中：ノートを動かします");
 
     double currentTime = GameSceneManager.GetGameDspTime() - startTime;
     noteControllers.RemoveAll(note => note == null);
@@ -71,6 +73,12 @@ void Update()
     {
         note?.UpdatePosition((float)currentTime);
     }
+
+    if (isPaused)
+{
+    //Debug.Log("⏸ NotesGenerator: isPaused により停止中");
+    return;
+}
 }
 
     public void RemoveNote(NoteController note)
@@ -272,6 +280,17 @@ void Update()
             Debug.LogError("❌ NotesGenerator: SongManager.SelectedSong が null です！");
         }
     }
+
+public void PausePlayback()
+{
+    isPaused = true;
+}
+
+public void ResumePlayback()
+{
+    isPaused = false;
+}
+
 
     public void ResetState()
 {
