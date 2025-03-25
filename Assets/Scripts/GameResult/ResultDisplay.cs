@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+//テスト用
 
 public class ResultDisplay : MonoBehaviour
 {
