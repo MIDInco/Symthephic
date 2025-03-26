@@ -23,28 +23,40 @@ public class ChartPlaybackManager : MonoBehaviour
         }
     }
 
-    public void StartPlayback()
+    private System.Collections.IEnumerator DelayStartPlaybackCoroutine()
+{
+    yield return null; // 1フレーム待機して確実に再生が始まった後に取得
+
+    if (notesGenerator == null)
     {
-        Debug.Log("🎬 ChartPlaybackManager: StartPlayback() が呼ばれました！");
-
-        if (AudioManager.Instance == null || AudioManager.Instance.audioSource == null)
-        {
-            Debug.LogError("❌ AudioManager または audioSource が NULL のため、オーディオを再生できません！");
-            return;
-        }
-
-        Debug.Log("✅ オーディオを再生します！");
-        AudioManager.Instance.audioSource.Play();
-
-        if (notesGenerator == null)
-        {
-            Debug.LogError("❌ NotesGenerator が NULL のため、譜面の再生ができません！");
-            return;
-        }
-
-        Debug.Log("✅ 譜面の再生を開始します！");
-        OnAudioPlaybackStarted();
+        Debug.LogError("❌ NotesGenerator が NULL のため、譜面の再生ができません！");
+        yield break;
     }
+
+    double audioStartTime = AudioSettings.dspTime;
+    float chartDelay = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
+    double adjustedStartTime = audioStartTime + chartDelay;
+
+    Debug.Log($"🎯 オーディオの再生が確認された: {audioStartTime:F6} 秒");
+    Debug.Log($"⏳ Chart Delay: {chartDelay} 秒 → 譜面の開始時間: {adjustedStartTime:F6} 秒");
+
+    notesGenerator.SetStartTime(adjustedStartTime);
+    notesGenerator.StartPlayback();
+}
+
+public void StartPlayback()
+{
+    Debug.Log("🎬 ChartPlaybackManager: StartPlayback() が呼ばれました！");
+
+    if (AudioManager.Instance == null || AudioManager.Instance.audioSource == null)
+    {
+        Debug.LogError("❌ AudioManager または audioSource が NULL のため、オーディオを再生できません！");
+        return;
+    }
+
+    AudioManager.Instance.audioSource.Play();
+    StartCoroutine(DelayStartPlaybackCoroutine());
+}
 
     private void OnAudioPlaybackStarted()
     {

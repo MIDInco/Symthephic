@@ -7,26 +7,46 @@ public class GameSettingsInitializer : MonoBehaviour
 
     [SerializeField] private AudioMixer audioMixer; // Inspector で MasterMixer をアサイン
 
-    void Awake()
+void Awake()
+{
+    if (Instance == null)
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+        Debug.Log("🔁 GameSettingsInitializer.Awake() 開始");
 
-            GameSettingsLoader.Load(audioMixer); // 🔁 一度だけ反映
-            Debug.Log("✅ GameSettingsInitializer: 設定を初期化しました");
-        }
-        else
-        {
-            Destroy(gameObject); // 🎯 二重生成防止
-        }
+        GameSettingsData loaded = GameSettingsFileManager.LoadOrCreate();
+        Debug.Log($"📘 読み込んだJSON: speed={loaded.NoteSpeed}, volume={loaded.MasterVolume}");
+
+        GameSettings.NoteSpeed = loaded.NoteSpeed;
+        GameSettings.MasterVolume = loaded.MasterVolume;
+        GameSettings.NoteOffsetValue = loaded.NoteOffsetValue;
+        GameSettings.ChartDelay = loaded.ChartDelay;
+
+        Debug.Log("✅ GameSettings に値を反映完了");
     }
-
-    void Start()
+    else
     {
-        ApplySettings(); // 起動直後、確実にMixerに反映させる
+        Destroy(gameObject);
     }
+}
+
+
+void Start()
+{
+    ApplySettings();
+
+    var uiController = FindFirstObjectByType<GameSettingsUIController>();
+    if (uiController != null)
+    {
+        Debug.Log("📦 GameSettingsInitializer: ApplySettingsToUI を呼び出します");
+        uiController.ApplySettingsToUI();
+    }
+    else
+    {
+        Debug.LogWarning("⚠ GameSettingsInitializer: UIController が見つかりませんでした");
+    }
+}
 
     public void ApplySettings()
 {

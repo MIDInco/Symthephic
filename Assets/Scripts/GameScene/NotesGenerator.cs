@@ -205,30 +205,32 @@ void Update()
 
             notesAtTick.Sort((a, b) => b.Value.CompareTo(a.Value));
 
-            foreach (var ev in notesAtTick)
-            {
-                double startZ = -noteSpeed * noteTime;
-                float startX = GetFixedXPosition(ev.Value);
+    foreach (var ev in notesAtTick)
+    {
+        double travelTime = 2.0; // ノートが到達するまでの時間（秒）
+        double spawnTime = noteTime - travelTime;
+        double startZ = -noteSpeed * travelTime; // スピードに応じて出現位置を調整
+        float startX = GetFixedXPosition(ev.Value);
 
-                GameObject note = Instantiate(Notes, new Vector3(startX, spawnPoint.position.y, (float)startZ), Quaternion.identity);
-                note.SetActive(true);
+        GameObject note = Instantiate(Notes, new Vector3(startX, spawnPoint.position.y, (float)startZ), Quaternion.identity);
+        note.SetActive(true);
 
-                NoteController noteController = note.GetComponent<NoteController>();
-                if (noteController != null)
-                {
-                    string uniqueID = globalIndex.ToString();
-                    globalIndex++;
+        NoteController noteController = note.GetComponent<NoteController>();
+        if (noteController != null)
+        {
+            string uniqueID = globalIndex.ToString();
+            globalIndex++;
 
-                    noteController.Initialize(noteTime, this, uniqueID);
-                    noteController.noteValue = ev.Value;
-                    noteController.tick = tick;
-                    noteControllers.Add(noteController);
+            noteController.Initialize(noteTime, this, uniqueID); // noteTimeは判定タイミング
+            noteController.noteValue = ev.Value;
+            noteController.tick = tick;
+            noteControllers.Add(noteController);
 
-                    Debug.Log($"🎵 [ノート生成] ID={uniqueID}, Note={noteController.noteValue}, Tick={noteController.tick}, 発音時間={noteTime:F3} sec");
+            Debug.Log($"🎵 [ノート生成] ID={uniqueID}, Note={noteController.noteValue}, Tick={noteController.tick}, 発音時間={noteTime:F3} sec");
 
-                    OnNoteGenerated?.Invoke(noteController);
-                }
-            }
+            OnNoteGenerated?.Invoke(noteController);
+        }
+    }
         }
 
         Debug.Log("✅ ノート生成完了（テンポ対応）！");
