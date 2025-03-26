@@ -35,13 +35,7 @@ void Awake()
 void Start()
 {
     ApplySettings();
-
-    var uiController = FindFirstObjectByType<GameSettingsUIController>();
-    if (uiController != null)
-    {
-        Debug.Log("📦 GameSettingsInitializer: ApplySettingsToUI を呼び出します");
-        uiController.ApplySettingsToUI();
-    }
+}
     else
     {
         Debug.LogWarning("⚠ GameSettingsInitializer: UIController が見つかりませんでした");

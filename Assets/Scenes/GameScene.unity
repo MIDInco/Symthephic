@@ -3935,7 +3935,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   readyUIController: {fileID: 1106903511}
-  audioMixer: {fileID: 0}
+  audioMixer: {fileID: 24100000, guid: fd1a8988b9cfe544f8a0b577b5c5c4ac, type: 2}
   pauseManager: {fileID: 732639361}
 --- !u!4 &1298103069
 Transform:

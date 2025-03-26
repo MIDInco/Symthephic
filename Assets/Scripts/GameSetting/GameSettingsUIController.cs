@@ -29,6 +29,7 @@ public class GameSettingsUIController : MonoBehaviour
     public TextMeshProUGUI chartDelayLabel;
     private const string ChartDelayKey = "ChartDelay";
 
+    
     void Start()
     {
         // イベント登録
@@ -41,32 +42,52 @@ public class GameSettingsUIController : MonoBehaviour
         noteOffsetSlider.onValueChanged.AddListener(OnNoteOffsetChanged);
         chartDelaySlider.onValueChanged.AddListener(OnChartDelayChanged);
 
-        // GameSettings の値を反映
-        masterVolumeSlider.value = GameSettings.MasterVolume;
-        speedSlider.value = GameSettings.NoteSpeed;
-        noteOffsetSlider.value = GameSettings.NoteOffsetValue;
-        chartDelaySlider.value = GameSettings.ChartDelay;
+        Debug.Log("🧪 GameSettings 値確認");
+        Debug.Log($"    NoteSpeed: {GameSettings.NoteSpeed}");
+        Debug.Log($"    MasterVolume: {GameSettings.MasterVolume}");
+        Debug.Log($"    NoteOffsetValue: {GameSettings.NoteOffsetValue}");
+        Debug.Log($"    ChartDelay: {GameSettings.ChartDelay}");
 
-        UpdateVolumeLabel(GameSettings.MasterVolume);
-        UpdateLabel(GameSettings.NoteSpeed);
-        OnNoteOffsetChanged(GameSettings.NoteOffsetValue);
-        OnChartDelayChanged(GameSettings.ChartDelay);
-
-        if (Noteoffset.Instance != null)
-        {
-            Noteoffset.Instance.SetNoteOffsetValue(GameSettings.NoteOffsetValue);
-            Noteoffset.Instance.chartDelay = GameSettings.ChartDelay;
-        }
+        ApplySettingsToUI();
     }
+
+
+    
 
     public void OpenPanel()
     {
-        Debug.Log("✅ OpenPanel() が呼び出されました");
+        Debug.Log("✅ OpenPanel() が呼び出されました - 開始");
+
+        try
+        {
+            // .json を読み込み、反映＋ログ出力
+            var data = GameSettingsFileManager.LoadOrCreate();
+            if (data == null)
+            {
+                Debug.LogError("❌ LoadOrCreate() の戻り値が null です");
+                return;
+            }
+
+            Debug.Log("📂 OpenPanel内でsettings.json読み込み成功");
+            Debug.Log($"    [JSON] NoteSpeed: {data.NoteSpeed}");
+            Debug.Log($"    [JSON] MasterVolume: {data.MasterVolume}");
+            Debug.Log($"    [JSON] NoteOffsetValue: {data.NoteOffsetValue}");
+            Debug.Log($"    [JSON] ChartDelay: {data.ChartDelay}");
+
+            GameSettings.ApplyFromData(data);
+            ApplySettingsToUI();
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"❌ OpenPanel() 中に例外が発生しました: {ex.Message}\n{ex.StackTrace}");
+        }
+
         if (settingPanel != null)
             settingPanel.SetActive(true);
         else
             Debug.LogError("❌ settingPanel が null です！");
     }
+
 public void ClosePanel()
 {
     Debug.Log("❎ ClosePanel() が呼び出されました");
@@ -84,20 +105,25 @@ public void ClosePanel()
 }
 
 
-    public void SetVolume(float value)
+public void SetVolume(float value)
+{
+    float minVolume = 0.0001f;
+    float volume = Mathf.Lerp(minVolume, 1f, value);
+    float db = Mathf.Lerp(-80f, 0f, Mathf.Pow(value, 0.3f));
+
+    if (audioMixer != null)
     {
-        float minVolume = 0.0001f;
-        float volume = Mathf.Lerp(minVolume, 1f, value);
-        float db = Mathf.Lerp(-80f, 0f, Mathf.Pow(value, 0.3f));
         audioMixer.SetFloat(VolumeParameter, db);
-
-        GameSettings.MasterVolume = value;
-        PlayerPrefs.SetFloat(VolumeKey, value);
-        PlayerPrefs.Save();
-
-        UpdateVolumeLabel(value);
-        Debug.Log($"🔊 ボリューム設定: value={value}, dB={db}");
     }
+    else
+    {
+        Debug.LogWarning("⚠ SetVolume: audioMixer が未設定です！");
+    }
+
+    GameSettings.MasterVolume = value;
+    UpdateVolumeLabel(value);
+    Debug.Log($"🔊 ボリューム設定: value={value}, dB={db}");
+}
 
     void UpdateVolumeLabel(float value)
     {
@@ -106,11 +132,7 @@ public void ClosePanel()
 
     void OnSpeedChanged(float value)
     {
-        GameSettings.NoteSpeed = value;
-        PlayerPrefs.SetFloat(SpeedKey, value);
-        PlayerPrefs.Save();
-
-        UpdateLabel(value);
+        GameSettings.NoteSpeed = value;UpdateLabel(value);
         Debug.Log($"🎚 ノートスピード: {value:0.0}x");
     }
 
@@ -123,11 +145,7 @@ public void ClosePanel()
     {
         noteOffsetLabel.text = $"判定タイミング補正: {(value >= 0 ? "+" : "")}{value:F3}s";
 
-        GameSettings.NoteOffsetValue = value;
-        PlayerPrefs.SetFloat(NoteOffsetKey, value);
-        PlayerPrefs.Save();
-
-        if (Noteoffset.Instance != null)
+        GameSettings.NoteOffsetValue = value;if (Noteoffset.Instance != null)
             Noteoffset.Instance.SetNoteOffsetValue(value);
     }
 
@@ -135,11 +153,7 @@ public void ClosePanel()
     {
         chartDelayLabel.text = $"チャート遅延補正: {(value >= 0 ? "+" : "")}{value:F3}s";
 
-        GameSettings.ChartDelay = value;
-        PlayerPrefs.SetFloat(ChartDelayKey, value);
-        PlayerPrefs.Save();
-
-        if (Noteoffset.Instance != null)
+        GameSettings.ChartDelay = value;if (Noteoffset.Instance != null)
             Noteoffset.Instance.chartDelay = value;
     }
 
@@ -188,4 +202,12 @@ public void ClosePanel()
     GameSettingsFileManager.Save(data);
 }
 
+
+    public void ReloadSettingsFromJson()
+    {
+        var data = GameSettingsFileManager.LoadOrCreate();
+        GameSettings.ApplyFromData(data);
+        ApplySettingsToUI();
+        Debug.Log("🔄 ReloadSettingsFromJson: 設定を再読み込みしてUIに反映しました");
+    }
 }
