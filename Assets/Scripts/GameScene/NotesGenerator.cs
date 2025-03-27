@@ -5,6 +5,8 @@ using System.Collections;
 using UnityEngine;
 using MPTKDemoCatchMusic;
 
+//ロングノーツを実装予定。
+
 public class NotesGenerator : MonoBehaviour
 {
     public GameObject Notes;
