@@ -177,20 +177,17 @@ public void SetVolume(float value)
         OnChartDelayChanged(GameSettings.ChartDelay);
     }
 
-    public void ResetSettings()
-    {
-        float defaultSpeed = 10.0f;
-        float defaultVolume = 1f;
-        float defaultNoteOffset = 0.0f;
-        float defaultChartDelay = 0.2f;
+public void ResetSettings()
+{
+    var defaultData = new GameSettingsData(); // ← ここが重要！
 
-        speedSlider.value = defaultSpeed;
-        masterVolumeSlider.value = defaultVolume;
-        noteOffsetSlider.value = defaultNoteOffset;
-        chartDelaySlider.value = defaultChartDelay;
+    speedSlider.value = defaultData.NoteSpeed;
+    masterVolumeSlider.value = defaultData.MasterVolume;
+    noteOffsetSlider.value = defaultData.NoteOffsetValue;
+    chartDelaySlider.value = defaultData.ChartDelay;
 
-        Debug.Log("🔁 設定をリセットしました");
-    }
+    Debug.Log("🔁 GameSettingsData に基づいて設定をリセットしました");
+}
 
     public void SaveToJson()
 {
