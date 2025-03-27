@@ -37,33 +37,41 @@ public class GameSceneManager : MonoBehaviour
         Debug.Log("🔁 GameSceneManager: Awake() でポーズ状態をリセットしました");
     }
 
-    void Start()
+void Start()
+{
+    // 1. 設定ファイルから読み込んで GameSettings に適用
+    GameSettingsData data = GameSettingsFileManager.LoadOrCreate();
+    GameSettings.ApplyFromData(data);
+
+    // 2. AudioMixerへの反映などをまとめて行う (MasterVolumeなど)
+    GameSettingsInitializer.Instance?.ApplySettings();
+
+    // AudioManagerが無ければ生成
+    if (AudioManager.Instance == null)
     {
-        GameSettingsLoader.Load();
-        if (AudioManager.Instance == null)
+        GameObject prefab = Resources.Load<GameObject>("GameScenes/AudioManager");
+        if (prefab != null)
         {
-            GameObject prefab = Resources.Load<GameObject>("GameScenes/AudioManager");
-            if (prefab != null)
-            {
-                Instantiate(prefab);
-                Debug.Log("🎮 AudioManager を GameScene で生成しました！");
-            }
-            else
-            {
-                Debug.LogError("❌ AudioManager プレハブが Resources/GameScenes に見つかりません！");
-            }
+            Instantiate(prefab);
+            Debug.Log("🎮 AudioManager を GameScene で生成しました！");
         }
-
-        GameSettingsLoader.Load(audioMixer);
-
-        AudioManager.Instance.PlaySelectedAudio();
-
-        NotesGenerator generator = FindFirstObjectByType<NotesGenerator>();
-        if (generator != null)
+        else
         {
-            generator.LoadSelectedMidiAndGenerateNotes();
+            Debug.LogError("❌ AudioManager プレハブが Resources/GameScenes に見つかりません！");
         }
     }
+
+    // Audio再生開始
+    AudioManager.Instance?.PlaySelectedAudio();
+
+    // ノーツ生成
+    NotesGenerator generator = FindFirstObjectByType<NotesGenerator>();
+    if (generator != null)
+    {
+        generator.LoadSelectedMidiAndGenerateNotes();
+    }
+}
+
 
     public static double GetGameDspTime()
     {

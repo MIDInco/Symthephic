@@ -2635,12 +2635,12 @@ MonoBehaviour:
   audioMixer: {fileID: 0}
   masterVolumeSlider: {fileID: 0}
   volumeLabel: {fileID: 0}
+  speedSlider: {fileID: 1561115735}
+  speedLabel: {fileID: 1178241309}
   noteOffsetSlider: {fileID: 0}
   noteOffsetLabel: {fileID: 0}
   chartDelaySlider: {fileID: 0}
   chartDelayLabel: {fileID: 0}
-  speedSlider: {fileID: 1561115735}
-  speedLabel: {fileID: 1178241309}
 --- !u!114 &569194881
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3442,12 +3442,12 @@ MonoBehaviour:
   audioMixer: {fileID: 0}
   masterVolumeSlider: {fileID: 1219429569}
   volumeLabel: {fileID: 999659919}
-  noteOffsetSlider: {fileID: 1092911331}
-  noteOffsetLabel: {fileID: 1299115426}
-  chartDelaySlider: {fileID: 321708165}
-  chartDelayLabel: {fileID: 2086394286}
   speedSlider: {fileID: 1756057586}
   speedLabel: {fileID: 1299115426}
+  noteOffsetSlider: {fileID: 1092911331}
+  noteOffsetLabel: {fileID: 1275422407}
+  chartDelaySlider: {fileID: 321708165}
+  chartDelayLabel: {fileID: 2086394286}
 --- !u!1 &881905449
 GameObject:
   m_ObjectHideFlags: 0

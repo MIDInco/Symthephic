@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.Audio;
+//テスト
 
 public class GameSettingsUIController : MonoBehaviour
 {
@@ -101,19 +102,19 @@ public void ClosePanel()
 
     SaveToJson(); // jsonに保存
 
-    Debug.Log("💾 設定をJSONに保存しました");
+    GameSettingsInitializer.Instance?.ApplySettings();
+
+    Debug.Log("💾 設定をJSONに保存 & Mixerに反映しました");
 }
 
 
 public void SetVolume(float value)
 {
-    float minVolume = 0.0001f;
-    float volume = Mathf.Lerp(minVolume, 1f, value);
-    float db = Mathf.Lerp(-80f, 0f, Mathf.Pow(value, 0.3f));
+    float db = Mathf.Lerp(-40f, 0f, Mathf.Pow(value, 0.4f));
 
     if (audioMixer != null)
     {
-        audioMixer.SetFloat(VolumeParameter, db);
+        audioMixer.SetFloat("MasterVolume", db);
     }
     else
     {
@@ -124,6 +125,7 @@ public void SetVolume(float value)
     UpdateVolumeLabel(value);
     Debug.Log($"🔊 ボリューム設定: value={value}, dB={db}");
 }
+
 
     void UpdateVolumeLabel(float value)
     {
