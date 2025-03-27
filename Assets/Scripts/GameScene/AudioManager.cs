@@ -54,19 +54,22 @@ private void Update()
         if (audioSource.isPlaying && !hasAudioStarted)
         {
             hasAudioStarted = true;
+            Debug.Log("🔄 AudioManager: 再生が開始されました → hasAudioStarted = true");
         }
+
+        bool hasStarted = hasAudioStarted || audioSource.time > 0.1f;
 
         // 🎯 曲が完全に再生しきったかをチェック
         bool isPlaybackFinished =
-            hasAudioStarted &&
+            hasStarted &&
             !audioSource.isPlaying &&
             audioSource.clip != null &&
-            audioSource.timeSamples >= audioSource.clip.samples - 1000 && // 約0.02秒の余裕
-            !GameSceneManager.IsPaused;
+            audioSource.time >= audioSource.clip.length - 0.05f;
 
         if (isPlaybackFinished)
         {
-            Debug.Log("🎵 AudioManager: 曲の再生が完了しました（timeSamplesベース）！");
+            Debug.Log($"✅ AudioManager: 曲の再生が完了しました！ time={audioSource.time:F2}, length={audioSource.clip.length:F2}");
+
             hasAudioStarted = false;
 
             if (GameSceneManager.Instance != null)
@@ -80,8 +83,13 @@ private void Update()
                 transitionManager?.LoadResultScene();
             }
         }
+        else if (!audioSource.isPlaying && hasStarted && audioSource.clip != null)
+        {
+            Debug.LogWarning($"⚠ 再生終了っぽいが条件不一致: time={audioSource.time:F2}, length={audioSource.clip.length:F2}, hasAudioStarted={hasAudioStarted}");
+        }
     }
 }
+
 
 
 
