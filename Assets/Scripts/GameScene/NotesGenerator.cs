@@ -214,10 +214,10 @@ Debug.Log($"🕒 ノートタイミング: noteTime={noteTime:F3}, spawnTime={(n
 
     foreach (var ev in notesAtTick)
     {
-double travelTime = 2.0;
+double travelTime = 5.0;
 double spawnTime = noteTime - travelTime;
 double timeUntilJudgment = noteTime - startTime; // 判定まであと何秒？
-double startZ = timeUntilJudgment * noteSpeed;   // Z+方向に配置
+double startZ = (timeUntilJudgment + travelTime) * noteSpeed;   // Z+方向に配置
         float startX = GetFixedXPosition(ev.Value);
 
         GameObject note = Instantiate(Notes, new Vector3(startX, spawnPoint.position.y, (float)startZ), Quaternion.identity);

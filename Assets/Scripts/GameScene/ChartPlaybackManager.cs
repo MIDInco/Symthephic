@@ -44,6 +44,7 @@ public class ChartPlaybackManager : MonoBehaviour
     notesGenerator.StartPlayback();
 }
 
+
 public void StartPlayback()
 {
     Debug.Log("🎬 ChartPlaybackManager: StartPlayback() が呼ばれました！");
