@@ -27,16 +27,15 @@ public class Noteoffset : MonoBehaviour
         }
     }
 
-    private void Start()
+private void Start()
 {
-    float savedOffset = PlayerPrefs.GetFloat("NoteOffsetValue", 0.0f);
-    float savedDelay = PlayerPrefs.GetFloat("ChartDelay", 0.0f);
+    // PlayerPrefs廃止 → GameSettingsから読み込み
+    SetNoteOffsetValue(GameSettings.NoteOffsetValue);
+    chartDelay = GameSettings.ChartDelay;
 
-    SetNoteOffsetValue(savedOffset);
-    chartDelay = savedDelay;
-
-    Debug.Log($"✅ Noteoffset.cs 初期化: Offset={savedOffset}, Delay={savedDelay}");
+    Debug.Log($"✅ Noteoffset.cs 初期化（.json経由）: Offset={NoteoffsetValue}, Delay={chartDelay}");
 }
+
 
     public void UpdateBPM(float bpm)
     {

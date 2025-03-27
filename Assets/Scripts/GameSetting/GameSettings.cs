@@ -4,7 +4,7 @@ public class GameSettingsData
     public float NoteSpeed = 10.0f;
     public float MasterVolume = 1f;
     public float NoteOffsetValue = 0.0f;
-    public float ChartDelay = 0.3f;
+    public float ChartDelay = 0.1f;
 }
 
 public static class GameSettings
