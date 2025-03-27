@@ -145,7 +145,7 @@ public void SetVolume(float value)
 
     void OnNoteOffsetChanged(float value)
     {
-        noteOffsetLabel.text = $"判定タイミング補正: {(value >= 0 ? "+" : "")}{value:F3}s";
+        noteOffsetLabel.text = $"判定タイミング補正: {(value >= 0 ? "+" : "")}{value:F2}s";
 
         GameSettings.NoteOffsetValue = value;if (Noteoffset.Instance != null)
             Noteoffset.Instance.SetNoteOffsetValue(value);
@@ -153,7 +153,7 @@ public void SetVolume(float value)
 
     void OnChartDelayChanged(float value)
     {
-        chartDelayLabel.text = $"チャート遅延補正: {(value >= 0 ? "+" : "")}{value:F3}s";
+        chartDelayLabel.text = $"チャート遅延補正: {(value >= 0 ? "+" : "")}{value:F2}s";
 
         GameSettings.ChartDelay = value;if (Noteoffset.Instance != null)
             Noteoffset.Instance.chartDelay = value;
