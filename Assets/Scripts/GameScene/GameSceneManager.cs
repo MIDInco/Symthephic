@@ -64,11 +64,11 @@ void Start()
     // Audio再生開始
     AudioManager.Instance?.PlaySelectedAudio();
 
-    // ノーツ生成
-    NotesGenerator generator = FindFirstObjectByType<NotesGenerator>();
-    if (generator != null)
+    // 🆕 譜面だけ先にロード（再生はしない）
+    ChartPlaybackManager manager = FindAnyObjectByType<ChartPlaybackManager>();
+    if (manager != null)
     {
-        generator.LoadSelectedMidiAndGenerateNotes();
+        manager.LoadChartOnly();
     }
 }
 

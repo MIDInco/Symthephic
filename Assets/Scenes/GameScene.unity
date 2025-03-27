@@ -1379,11 +1379,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 431203180}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a13aa11e86f364c4e82f98b35bf0fe07, type: 3}
+  m_Script: {fileID: 11500000, guid: 633ab89fdcd40964385595600fa18341, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   NoteoffsetValue: 0
-  chartDelay: 0.1
+  chartDelay: 0
 --- !u!1 &438756777
 GameObject:
   m_ObjectHideFlags: 0
@@ -1929,12 +1929,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 526573590}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 892e4c5475e29af428b201734475539a, type: 3}
+  m_Script: {fileID: 11500000, guid: 999eade42664a144ca93080282b07b7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Notes: {fileID: 1808032533652815465, guid: 07b9e72c55f86ca46ab9efbd2b9e5822, type: 3}
   spawnPoint: {fileID: 152859527}
-  noteSpeed: 8
+  noteSpeed: 1
   noteControllers: []
   midiFilePlayer: {fileID: 1940709685}
   chartDelay: 0
@@ -4364,7 +4364,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1444079523}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59096d006115900458b9ee797a8290db, type: 3}
+  m_Script: {fileID: 11500000, guid: cda1a44bba939d040834d60ab817fd83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   notesGenerator: {fileID: 0}

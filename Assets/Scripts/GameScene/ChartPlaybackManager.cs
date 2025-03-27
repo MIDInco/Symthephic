@@ -58,18 +58,21 @@ public void StartPlayback()
     StartCoroutine(DelayStartPlaybackCoroutine());
 }
 
-    private void OnAudioPlaybackStarted()
-    {
-        double audioStartTime = AudioSettings.dspTime;
-        float chartDelay = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
-        double adjustedStartTime = audioStartTime + chartDelay;
+// ✅ この関数全体を削除またはコメントアウトする
+/*
+private void OnAudioPlaybackStarted()
+{
+    double audioStartTime = AudioSettings.dspTime;
+    float chartDelay = Noteoffset.Instance != null ? Noteoffset.Instance.GetChartDelay() : 0f;
+    double adjustedStartTime = audioStartTime + chartDelay;
 
-        Debug.Log($"🎯 オーディオの再生が開始: {audioStartTime:F3} sec");
-        Debug.Log($"⏳ Chart Delay: {chartDelay} 秒 → 譜面の開始時間: {adjustedStartTime:F3} sec");
+    Debug.Log($"🎯 オーディオの再生が開始: {audioStartTime:F3} sec");
+    Debug.Log($"⏳ Chart Delay: {chartDelay} 秒 → 譜面の開始時間: {adjustedStartTime:F3} sec");
 
-        notesGenerator.SetStartTime(adjustedStartTime);
-        notesGenerator.StartPlayback();
-    }
+    notesGenerator.SetStartTime(adjustedStartTime);
+    notesGenerator.StartPlayback();
+}
+*/
 
     public void PauseChart()
     {
@@ -86,4 +89,19 @@ public void StartPlayback()
 
         notesGenerator?.ResumePlayback();
     }
+
+    // 🎼 ノーツだけ生成（再生しない）
+public void LoadChartOnly()
+{
+    if (notesGenerator != null)
+    {
+        Debug.Log("🎼 ChartPlaybackManager: LoadChartOnly() → ノートを読み込みます");
+        notesGenerator.LoadSelectedMidiAndGenerateNotes(); // ノート生成のみ
+    }
+    else
+    {
+        Debug.LogError("❌ notesGenerator が null のため、譜面を生成できません");
+    }
+}
+
 }

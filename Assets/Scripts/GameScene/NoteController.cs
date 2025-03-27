@@ -24,6 +24,12 @@ public class NoteController : MonoBehaviour
         double elapsedTime = currentTime - tickTimeSeconds;
         double targetZ = -elapsedTime * generator.noteSpeed;
 
+         // ✅ 👇 ここに追記
+    if (uniqueID == "1")
+    {
+        Debug.Log($"🛰 ノートID=1 | Z={transform.position.z:F3} | elapsed={elapsedTime:F3} | currentTime={currentTime:F3} | tickTime={tickTimeSeconds:F3}");
+    }
+
         transform.position = new Vector3(transform.position.x, transform.position.y, (float)targetZ);
 
         // 一定距離を超えたら削除

@@ -53,8 +53,11 @@ public class NotesGenerator : MonoBehaviour
         }
     }
 
-void Update()
-{
+    void Update()
+    {
+
+    double currentTime = GameSceneManager.GetGameDspTime() - startTime;
+
     if (GameSceneManager.IsPaused || GameSceneManager.IsResuming)
     {
         //Debug.Log("⏸ Update停止中：ポーズ中");
@@ -68,8 +71,6 @@ void Update()
     }
 
     //ebug.Log("▶ Update実行中：ノートを動かします");
-
-    double currentTime = GameSceneManager.GetGameDspTime() - startTime;
     noteControllers.RemoveAll(note => note == null);
 
     foreach (var note in noteControllers)
@@ -78,10 +79,10 @@ void Update()
     }
 
     if (isPaused)
-{
-    //Debug.Log("⏸ NotesGenerator: isPaused により停止中");
-    return;
-}
+    {
+        //Debug.Log("⏸ NotesGenerator: isPaused により停止中");
+        return;
+    }
 }
 
     public void RemoveNote(NoteController note)
@@ -159,7 +160,8 @@ void Update()
 
         Debug.Log($"⏳ 譜面の開始時間を {chartDelayOffset} 秒遅らせる (startTime = {startTime:F3})");
 
-        isReady = false;
+        //isReady = true;
+Debug.Log("✅ NotesGenerator: isReady を true に設定しました（譜面再生準備完了）");
     }
 
     void GenerateNotes(MidiLoad midiLoad)
@@ -204,14 +206,18 @@ void Update()
 
             double secondsPerTickNow = currentTempo / 1000000.0 / TPQN;
             double noteTime = currentTime + (tick - lastTick) * secondsPerTickNow;
+            Debug.Log($"🧪 ノート生成: tick={tick}, tempo={currentTempo}, TPQN={TPQN}, secondsPerTickNow={secondsPerTickNow:F6}");
+Debug.Log($"🕒 ノートタイミング: noteTime={noteTime:F3}, spawnTime={(noteTime - 2.0):F3}, startZ={(-noteSpeed * 2.0f):F2}");
+
 
             notesAtTick.Sort((a, b) => b.Value.CompareTo(a.Value));
 
     foreach (var ev in notesAtTick)
     {
-        double travelTime = 2.0; // ノートが到達するまでの時間（秒）
-        double spawnTime = noteTime - travelTime;
-        double startZ = -noteSpeed * travelTime; // スピードに応じて出現位置を調整
+double travelTime = 2.0;
+double spawnTime = noteTime - travelTime;
+double timeUntilJudgment = noteTime - startTime; // 判定まであと何秒？
+double startZ = timeUntilJudgment * noteSpeed;   // Z+方向に配置
         float startX = GetFixedXPosition(ev.Value);
 
         GameObject note = Instantiate(Notes, new Vector3(startX, spawnPoint.position.y, (float)startZ), Quaternion.identity);
@@ -254,14 +260,14 @@ void Update()
 
     public List<NoteController> GetNoteControllers() => noteControllers;
 
-    public void StartPlayback()
-    {
-        if (isReady) return;
-        isReady = true;
-        Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
+public void StartPlayback()
+{
+    // isReady チェックを削除 or 再設定
+    isReady = true;
+    Debug.Log($"🎵 譜面の再生を開始！ (startTime={startTime:F3})");
 
-        OnChartPlaybackStart?.Invoke(); // 🔁 これを追加
-    }
+    OnChartPlaybackStart?.Invoke();
+}
 
     public void SetStartTime(double time)
     {
