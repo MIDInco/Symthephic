@@ -70,6 +70,7 @@ public class NotesGenerator : MonoBehaviour
     {
         isReady = false;
         if (midiFilePlayer == null) yield break;
+        midiFilePlayer.MPTK_KeepNoteOff = true; // NoteOffを保持する
         MidiLoad midiLoad = midiFilePlayer.MPTK_Load();
         if (midiLoad == null) yield break;
 
@@ -84,65 +85,78 @@ public class NotesGenerator : MonoBehaviour
         Debug.Log($"✅ NotesGenerator: isReady を true に設定しました（譜面再生準備完了）");
     }
 
-void GenerateNotes(MidiLoad midiLoad)
+    void GenerateNotes(MidiLoad midiLoad)
 {
-    Debug.Log($"🧩 GenerateNotes呼び出し。MIDIイベント数 = {midiLoad.MPTK_MidiEvents.Count}");
-
     var events = midiLoad.MPTK_MidiEvents;
     int globalIndex = 0;
 
+    // ★ ここでノート別にスタックを準備
+    Dictionary<int, Stack<MPTKEvent>> noteOnStacks = new();
+
     foreach (var ev in events)
     {
-        if (ev.Command != MPTKCommand.NoteOn || ev.Velocity <= 0) continue;
-
-        long duration = ev.Duration;
-        bool isLong = duration >= TPQN / 2;
-
-        double noteTime = GetTimeFromTick(ev.Tick);
-        double endTime = GetTimeFromTick(ev.Tick + duration);
-
-        double travelTime = 5.0;
-        double timeUntilJudgment = noteTime - startTime;
-        double startZ = (timeUntilJudgment + travelTime) * noteSpeed;
-        float startX = GetFixedXPosition(ev.Value);
-
-        GameObject note = Instantiate(Notes);
-        note.transform.position = new Vector3(startX, spawnPoint.position.y, (float)startZ);
-        note.transform.rotation = Quaternion.identity;
-        note.transform.SetParent(null);
-        note.SetActive(true);
-
-        GameObject endNote = null;
-        if (isLong && LongNoteEnd != null)
+        if (ev.Command == MPTKCommand.NoteOn && ev.Velocity > 0)
         {
-            double longDuration = endTime - noteTime;
-            double endZ = startZ + (longDuration * noteSpeed);
+            if (!noteOnStacks.ContainsKey(ev.Value))
+                noteOnStacks[ev.Value] = new Stack<MPTKEvent>();
 
-            endNote = Instantiate(LongNoteEnd);
-            endNote.transform.position = new Vector3(startX, spawnPoint.position.y, (float)endZ);
-            endNote.transform.rotation = Quaternion.identity;
-            endNote.transform.SetParent(null);
-            endNote.SetActive(true);
-
-            Debug.Log($"🔚 ロングノーツ終点生成: Z={endZ:F2}, duration={duration} tick");
+            noteOnStacks[ev.Value].Push(ev);
         }
+        else if ((ev.Command == MPTKCommand.NoteOff || (ev.Command == MPTKCommand.NoteOn && ev.Velocity == 0)))
+        {
+            if (noteOnStacks.ContainsKey(ev.Value) && noteOnStacks[ev.Value].Count > 0)
+            {
+                var noteOn = noteOnStacks[ev.Value].Pop();
+                long duration = ev.Tick - noteOn.Tick;
 
-        NoteController controller = note.GetComponent<NoteController>();
-        string id = globalIndex.ToString();
-        globalIndex++;
-        controller.Initialize(noteTime, this, id);
-        controller.noteValue = ev.Value;
-        controller.tick = ev.Tick;
-        controller.isLongNote = isLong;
-        controller.endTick = ev.Tick + duration;
-        controller.endTime = endTime;
-        controller.SetEndNoteObject(endNote);
+                bool isLong = duration >= TPQN / 2;
 
-        noteControllers.Add(controller);
-        OnNoteGenerated?.Invoke(controller);
+                double noteTime = GetTimeFromTick(noteOn.Tick);
+                double endTime = GetTimeFromTick(ev.Tick);
+
+                double travelTime = 5.0;
+                double timeUntilJudgment = noteTime - startTime;
+                double startZ = (timeUntilJudgment + travelTime) * noteSpeed;
+                float startX = GetFixedXPosition(noteOn.Value);
+
+                GameObject note = Instantiate(Notes);
+                note.transform.position = new Vector3(startX, spawnPoint.position.y, (float)startZ);
+                note.transform.rotation = Quaternion.identity;
+                note.transform.SetParent(null);
+                note.SetActive(true);
+
+                GameObject endNote = null;
+                if (isLong && LongNoteEnd != null)
+                {
+                    double endTimeUntilJudgment = endTime - startTime;
+                    double endZ = (endTimeUntilJudgment + travelTime) * noteSpeed;
+
+                    endNote = Instantiate(LongNoteEnd);
+                    endNote.transform.position = new Vector3(startX, spawnPoint.position.y, (float)endZ);
+                    endNote.transform.rotation = Quaternion.identity;
+                    endNote.transform.SetParent(null);
+                    endNote.SetActive(true);
+
+                    Debug.Log($"🔚 ロングノーツ終点生成: Z={endZ:F2}, duration={duration} tick");
+                }
+
+                NoteController controller = note.GetComponent<NoteController>();
+                string id = globalIndex.ToString();
+                globalIndex++;
+                controller.Initialize(noteTime, this, id);
+                controller.noteValue = noteOn.Value;
+                controller.tick = noteOn.Tick;
+                controller.isLongNote = isLong;
+                controller.endTick = ev.Tick;
+                controller.endTime = endTime;
+                controller.SetEndNoteObject(endNote);
+
+                noteControllers.Add(controller);
+                OnNoteGenerated?.Invoke(controller);
+            }
+        }
     }
 }
-
 
     double GetTimeFromTick(long tick)
     {
