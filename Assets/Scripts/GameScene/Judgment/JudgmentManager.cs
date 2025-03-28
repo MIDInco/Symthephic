@@ -45,12 +45,10 @@ public class JudgmentManager : MonoBehaviour
                     heldLongNotes[noteValue] = note;
                     Debug.Log($"⏳ ホールド開始: Note={noteValue}");
 
-                    // エフェクトとスコアも表示
                     Vector3 effectPosition = note.transform.position;
                     OnJudgment?.Invoke("Perfect", effectPosition);
                     ScoreManager.Instance?.RegisterPerfect();
                     PhraseManager.Instance?.IncreasePhrase();
-
                     return;
                 }
                 HandleJudgment("Perfect", note, false);
@@ -67,7 +65,6 @@ public class JudgmentManager : MonoBehaviour
                     OnJudgment?.Invoke("Good", effectPosition);
                     ScoreManager.Instance?.RegisterGood();
                     PhraseManager.Instance?.IncreasePhrase();
-
                     return;
                 }
                 HandleJudgment("Good", note, false);
@@ -162,12 +159,17 @@ public class JudgmentManager : MonoBehaviour
                 Debug.Log($"❌ AutoMiss - ノートを逃しました (Note={note.noteValue}, Tick={note.tick}, 遅れ={note.tick - currentTick})");
 
                 notes.RemoveAt(i);
-                Destroy(note.gameObject);
-
-                if (note.isLongNote && note.endNoteObject != null)
+                if (note.isLongNote)
                 {
-                    Destroy(note.endNoteObject);
+                    if (note.endNoteObject != null) Destroy(note.endNoteObject);
+                    Transform parent = note.transform.parent;
+                    if (parent != null)
+                    {
+                        var body = parent.Find($"LongBody_{note.uniqueID}");
+                        if (body != null) Destroy(body.gameObject);
+                    }
                 }
+                Destroy(note.gameObject);
 
                 OnJudgment?.Invoke("Miss", note.transform.position);
                 ScoreManager.Instance?.RegisterMiss();
@@ -194,12 +196,19 @@ public class JudgmentManager : MonoBehaviour
         }
 
         notesGenerator.RemoveNote(note);
-        Destroy(note.gameObject);
 
-        if (isEnd && note.isLongNote && note.endNoteObject != null)
+        if (note.isLongNote)
         {
-            Destroy(note.endNoteObject);
+            if (note.endNoteObject != null) Destroy(note.endNoteObject);
+            Transform parent = note.transform.parent;
+            if (parent != null)
+            {
+                var body = parent.Find($"LongBody_{note.uniqueID}");
+                if (body != null) Destroy(body.gameObject);
+            }
         }
+
+        Destroy(note.gameObject);
 
         Vector3 effectPosition = isEnd && note.isLongNote && note.endNoteObject != null
             ? note.endNoteObject.transform.position
