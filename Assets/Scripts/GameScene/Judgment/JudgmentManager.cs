@@ -43,6 +43,7 @@ public class JudgmentManager : MonoBehaviour
                 if (note.isLongNote)
                 {
                     heldLongNotes[noteValue] = note;
+                    note.StartHold(); // 追加 ← これで帯が縮み始める
                     Debug.Log($"⏳ ホールド開始: Note={noteValue}");
 
                     Vector3 effectPosition = note.transform.position;
@@ -59,6 +60,7 @@ public class JudgmentManager : MonoBehaviour
                 if (note.isLongNote)
                 {
                     heldLongNotes[noteValue] = note;
+                    note.StartHold(); // 追加 ← Good判定でも縮む
                     Debug.Log($"⏳ ホールド開始 (Good): Note={noteValue}");
 
                     Vector3 effectPosition = note.transform.position;
@@ -78,6 +80,7 @@ public class JudgmentManager : MonoBehaviour
         if (!heldLongNotes.ContainsKey(noteValue)) return;
 
         var note = heldLongNotes[noteValue];
+        note.EndHold(); // 追加 ← ホールド終了で縮み停止
         heldLongNotes.Remove(noteValue);
 
         double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;

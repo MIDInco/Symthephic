@@ -1,6 +1,6 @@
 [
     {
-      "MidiFileName": "0001_Kousaku",
+      "MidiFileName": "0001_Kousaku_Hard",
       "DisplayName": "交錯",
       "AudioFileName": "Kousaku_Master2mix.wav",
       "IsDLC": false,
@@ -26,6 +26,14 @@
       "MidiFileName": "LongNoteTest",
       "DisplayName": "Long Test",
       "AudioFileName": "Long_Test.wav",
+      "IsDLC": false,
+      "DLCId": ""
+    },
+
+    {
+      "MidiFileName": "0007_Piano Concerto No.1 in Fis moll_Hard",
+      "DisplayName": "Piano Concerto No.1 in Fis",
+      "AudioFileName": "0007_Piano Concerto No.1 in Fis moll.wav",
       "IsDLC": false,
       "DLCId": ""
     },

@@ -19,6 +19,11 @@ public class NoteController : MonoBehaviour
     private Vector3 initialPosition;
     private Vector3 endInitialPosition;
 
+    private float holdStartTime = -1f;
+    public bool isBeingHeld = false;
+
+    private float smoothedLength = -1f;
+
     public void Initialize(double noteTime, NotesGenerator gen, string id)
     {
         tickTimeSeconds = noteTime;
@@ -60,21 +65,33 @@ public class NoteController : MonoBehaviour
         return new Vector3(basePosition.x, basePosition.y, (float)targetZ);
     }
 
-    private void UpdateBody()
+private void UpdateBody()
+{
+    if (bodyInstance == null || endNoteObject == null) return;
+
+    Vector3 start = transform.position;
+    Vector3 end = endNoteObject.transform.position;
+
+    // キーをホールドしていた場合、start.zを遅らせて短く見せる
+    if (isBeingHeld && holdStartTime > 0f)
     {
-        if (bodyInstance == null || endNoteObject == null) return;
+        float elapsed = Time.time - holdStartTime;
+        float shrinkZ = elapsed * generator.noteSpeed;
+        start.z += shrinkZ;
 
-        bodyInstance.SetActive(true); // ✅ 念のため明示的に有効化
-
-        Vector3 start = transform.position;
-        Vector3 end = endNoteObject.transform.position;
-        Vector3 center = (start + end) / 2f;
-        float length = Vector3.Distance(start, end);
-
-        bodyInstance.transform.position = center;
-        bodyInstance.transform.LookAt(end);
-        bodyInstance.transform.localScale = new Vector3(0.2f, 0.01f, length);
+        // ノートの終点を越えないように制限
+        if (start.z > end.z)
+            start.z = end.z;
     }
+
+    Vector3 center = (start + end) / 2f;
+    float length = Vector3.Distance(start, end);
+
+    bodyInstance.transform.position = center;
+    bodyInstance.transform.LookAt(end);
+    bodyInstance.transform.localScale = new Vector3(0.2f, 0.01f, length);
+}
+
 
     public void UpdatePosition(float currentTime)
     {
@@ -107,4 +124,15 @@ public class NoteController : MonoBehaviour
             }
         }
     }
+
+    public void StartHold()
+{
+    isBeingHeld = true;
+    holdStartTime = Time.time;
+}
+
+public void EndHold()
+{
+    isBeingHeld = false;
+}
 }

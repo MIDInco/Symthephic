@@ -102,10 +102,21 @@ public void ClosePanel()
 
     SaveToJson(); // jsonに保存
 
-    GameSettingsInitializer.Instance?.ApplySettings();
+    // 🔍 GameSettingsInitializer を探して ApplySettings を呼ぶ
+    var initializer = GameObject.FindFirstObjectByType<GameSettingsInitializer>();
+    if (initializer != null)
+    {
+        initializer.ApplySettings();
+        Debug.Log("✅ ApplySettings を直接呼び出しました");
+    }
+    else
+    {
+        Debug.LogWarning("⚠ ClosePanel: GameSettingsInitializer が見つかりませんでした");
+    }
 
     Debug.Log("💾 設定をJSONに保存 & Mixerに反映しました");
 }
+
 
 
 public void SetVolume(float value)

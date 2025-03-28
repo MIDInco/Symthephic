@@ -11,9 +11,10 @@
   </SoundFonts>
   <IndexSelectedSF>0</IndexSelectedSF>
   <MidiFiles>
-    <string>0001_Kousaku</string>
+    <string>0001_Kousaku_Hard</string>
     <string>0003_Taihaiteki_Hard</string>
     <string>0005_Kousou</string>
+    <string>0007_Piano Concerto No.1 in Fis moll_Hard</string>
     <string>LongNoteTest</string>
     <string>Tempo_Test</string>
   </MidiFiles>
