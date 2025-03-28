@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class KeyInputHandler : MonoBehaviour
 {
-    public JudgmentManager judgmentManager; // 修正: JudgmentManager に処理を送る
+    public JudgmentManager judgmentManager;
+    public ReadyUIController readyUIController; // 追加
 
     void Update()
     {
@@ -62,6 +63,19 @@ public class KeyInputHandler : MonoBehaviour
     {
         if (GameSceneManager.Instance == null) return;
 
+        if (readyUIController != null && readyUIController.IsPlayingReadySequence)
+        {
+            Debug.Log("⏸ Ready中のためポーズできません");
+            return;
+        }
+
+        // カウントダウン中もポーズ不可
+        if (CountdownManager.IsCountingDown)
+        {
+            Debug.Log("⏸ カウントダウン中のためポーズできません");
+            return;
+        }
+
         PauseManager pauseManager = FindAnyObjectByType<PauseManager>();
         if (pauseManager == null)
         {
@@ -75,3 +89,4 @@ public class KeyInputHandler : MonoBehaviour
             GameSceneManager.Instance.PauseGame();
     }
 }
+

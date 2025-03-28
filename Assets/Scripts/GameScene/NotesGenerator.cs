@@ -48,7 +48,7 @@ public class NotesGenerator : MonoBehaviour
     void Update()
     {
         double currentTime = GameSceneManager.GetGameDspTime() - startTime;
-        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming || !isReady || isPaused) return;
+        if (GameSceneManager.IsPaused || !isReady || isPaused) return;
 
         noteControllers.RemoveAll(note => note == null);
         foreach (var note in noteControllers)

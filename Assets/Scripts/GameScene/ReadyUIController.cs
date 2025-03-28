@@ -9,9 +9,12 @@ public class ReadyUIController : MonoBehaviour
     [SerializeField] private float showDuration = 3f;         // 「Ready」表示時間
     [SerializeField] private float delayAfterHide = 1f;       // 表示が消えてからの追加待機時間
 
+    public bool IsPlayingReadySequence { get; private set; } = false;
+
     public IEnumerator PlayReadySequence(Action onComplete = null)
     {
         Debug.Log("🟡 Ready演出 開始");
+        IsPlayingReadySequence = true;
 
         if (readyText != null)
         {
@@ -31,6 +34,7 @@ public class ReadyUIController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(delayAfterHide);
 
+        IsPlayingReadySequence = false;
         onComplete?.Invoke();
     }
 }

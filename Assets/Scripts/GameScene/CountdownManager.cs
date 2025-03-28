@@ -1,41 +1,44 @@
 using System.Collections;
 using UnityEngine;
-using TMPro; // ✅ 追加！
+using TMPro;
 
 public class CountdownManager : MonoBehaviour
 {
-    public TextMeshProUGUI countdownText; // ✅ ここを変更！
+    public TextMeshProUGUI countdownText;
     public int countdownTime = 3;
     public ChartPlaybackManager chartPlaybackManager;
 
-void Start()
-{
-    Debug.Log("🔍 CountdownManager: Start() 開始");
+    public static bool IsCountingDown { get; private set; } = false;
 
-    if (countdownText == null)
+    void Start()
     {
-        Debug.LogError("❌ countdownText が設定されていません！Inspector でアタッチしてください。");
-    }
-    else
-    {
-        Debug.Log($"✅ countdownText = {countdownText.name}");
-    }
+        Debug.Log("🔍 CountdownManager: Start() 開始");
 
-    if (chartPlaybackManager == null)
-    {
-        Debug.LogError("❌ chartPlaybackManager が null です！");
-    }
-    else
-    {
-        Debug.Log($"✅ chartPlaybackManager = {chartPlaybackManager.name}");
-    }
+        if (countdownText == null)
+        {
+            Debug.LogError("❌ countdownText が設定されていません！Inspector でアタッチしてください。");
+        }
+        else
+        {
+            Debug.Log($"✅ countdownText = {countdownText.name}");
+        }
 
-    StartCoroutine(CountdownRoutine());
-}
+        if (chartPlaybackManager == null)
+        {
+            Debug.LogError("❌ chartPlaybackManager が null です！");
+        }
+        else
+        {
+            Debug.Log($"✅ chartPlaybackManager = {chartPlaybackManager.name}");
+        }
+
+        StartCoroutine(CountdownRoutine());
+    }
 
     IEnumerator CountdownRoutine()
     {
         Debug.Log("⏳ CountdownRoutine 開始");
+        IsCountingDown = true;
 
         for (int i = countdownTime; i > 0; i--)
         {
@@ -54,10 +57,11 @@ void Start()
         }
         else
         {
-            Debug.LogError("❌ ChartPlaybackManager が NULL のため、StartPlayback() を呼べません！");
+            Debug.LogError("❌ chartPlaybackManager が NULL のため、StartPlayback() を呼べません！");
         }
 
         yield return new WaitForSeconds(1.0f);
         countdownText.gameObject.SetActive(false);
+        IsCountingDown = false;
     }
 }

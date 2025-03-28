@@ -73,7 +73,7 @@ public class NoteController : MonoBehaviour
 
         bodyInstance.transform.position = center;
         bodyInstance.transform.LookAt(end);
-        bodyInstance.transform.localScale = new Vector3(0.2f, 0.2f, length);
+        bodyInstance.transform.localScale = new Vector3(0.2f, 0.01f, length);
     }
 
     public void UpdatePosition(float currentTime)

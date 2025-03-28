@@ -1934,7 +1934,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Notes: {fileID: 1808032533652815465, guid: 07b9e72c55f86ca46ab9efbd2b9e5822, type: 3}
   LongNoteEnd: {fileID: 2498126324673704690, guid: f4206e7b7d168874daabfec5338ba88b, type: 3}
-  LongNoteBodyPrefab: {fileID: 0}
+  LongNoteBodyPrefab: {fileID: 2762598027905133018, guid: f240dffa47bcca648a1950698819947f, type: 3}
   spawnPoint: {fileID: 152859527}
   noteSpeed: 1
   noteControllers: []
