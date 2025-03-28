@@ -20,6 +20,24 @@
       "AudioFileName": "Tempo_Test.wav",
       "IsDLC": false,
       "DLCId": ""
+    },
+
+    {
+      "MidiFileName": "LongNoteTest",
+      "DisplayName": "Long Test",
+      "AudioFileName": "Long_Test.wav",
+      "IsDLC": false,
+      "DLCId": ""
+    },
+
+    {
+      "MidiFileName": "0005_Kousou",
+      "DisplayName": "鏗鏘",
+      "AudioFileName": "kousou.wav",
+      "IsDLC": false,
+      "DLCId": ""
     }
   ]
+
+  
   

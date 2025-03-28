@@ -2,41 +2,71 @@ using UnityEngine;
 
 public class NoteController : MonoBehaviour
 {
-    public int noteValue; // ノートの音程
-    public long tick; // ノートのタイミング（MIDI Tick）
-    
-    private NotesGenerator generator; // ノートを管理するジェネレーター
-    public double tickTimeSeconds; // ノートの秒単位のタイミング
-    public string uniqueID { get; private set; } // ノートの一意識別ID
+    public int noteValue;
+    public long tick;
+    public bool isLongNote = false;
+    public long endTick;
+    public double endTime;
+
+    public GameObject endNoteObject;
+
+    private NotesGenerator generator;
+    public double tickTimeSeconds;
+    public string uniqueID { get; private set; }
+
+    private Vector3 initialPosition;
+    private Vector3 endInitialPosition;
 
     public void Initialize(double noteTime, NotesGenerator gen, string id)
     {
-        tickTimeSeconds = noteTime; // MIDI Tick を秒単位に変換した値
+        tickTimeSeconds = noteTime;
         generator = gen;
         uniqueID = id;
+        initialPosition = transform.position;
+    }
+
+    public void SetEndNoteObject(GameObject endObj)
+    {
+        endNoteObject = endObj;
+        if (endObj != null)
+        {
+            endInitialPosition = endObj.transform.position;
+            endNoteObject.name = $"EndNote_{uniqueID}";
+        }
+    }
+
+    private Vector3 CalculatePosition(double currentTime, double targetTime, Vector3 basePosition)
+    {
+        double elapsedTime = currentTime - targetTime;
+        double targetZ = -elapsedTime * generator.noteSpeed;
+        return new Vector3(basePosition.x, basePosition.y, (float)targetZ);
     }
 
     public void UpdatePosition(float currentTime)
     {
-        if (GameSceneManager.IsPaused) return; // ← 追加
-        if (generator == null) return;
+        if (GameSceneManager.IsPaused || generator == null) return;
 
-        double elapsedTime = currentTime - tickTimeSeconds;
-        double targetZ = -elapsedTime * generator.noteSpeed;
+        Vector3 notePosition = CalculatePosition(currentTime, tickTimeSeconds, initialPosition);
+        transform.position = notePosition;
 
-         // ✅ 👇 ここに追記
-    if (uniqueID == "1")
-    {
-        Debug.Log($"🛰 ノートID=1 | Z={transform.position.z:F3} | elapsed={elapsedTime:F3} | currentTime={currentTime:F3} | tickTime={tickTimeSeconds:F3}");
-    }
-
-        transform.position = new Vector3(transform.position.x, transform.position.y, (float)targetZ);
-
-        // 一定距離を超えたら削除
-        if (targetZ < -10)
+        if (isLongNote && endNoteObject != null)
         {
-            generator.RemoveNote(this);
-            Destroy(gameObject);
+            Vector3 endPosition = CalculatePosition(currentTime, endTime, endInitialPosition);
+            endNoteObject.transform.position = endPosition;
+
+            if (endPosition.z < -10 && notePosition.z < -10)
+            {
+                GameObject.Destroy(endNoteObject);
+            }
+        }
+
+        if (notePosition.z < -10)
+        {
+            if (!isLongNote || endNoteObject == null)
+            {
+                generator.RemoveNote(this);
+                Destroy(gameObject);
+            }
         }
     }
 }

@@ -1,143 +1,161 @@
-using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class JudgmentManager : MonoBehaviour
 {
     public NotesGenerator notesGenerator;
-    public Transform judgmentLine;
+    public float goodThreshold = 120f;
+    public float perfectThreshold = 60f;
+    public float missThreshold = 180f;
 
-    [SerializeField] private int perfectThreshold = 120;
-    [SerializeField] private int goodThreshold = 240;
-    [SerializeField] private int missThreshold = 360;
-    [SerializeField] private int earlyMissThreshold = 480;
-    [SerializeField] private int earlyIgnoreThreshold = 600;
+    public event Action<string, Vector3> OnJudgment;
 
-    public static event Action<string, Vector3> OnJudgment;
-
-    void Start()
-    {
-        ValidateThresholds();
-    }
+    private Dictionary<int, NoteController> heldLongNotes = new Dictionary<int, NoteController>();
 
     void Update()
     {
-        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
+        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming || !notesGenerator.isReady) return;
         AutoMissCheck();
-    }
-
-    private void ValidateThresholds()
-    {
-        if (goodThreshold <= perfectThreshold)
-        {
-            Debug.LogWarning("⚠ Good閾値はPerfect閾値より大きくする必要があります。自動修正されました。");
-            goodThreshold = perfectThreshold + 1;
-        }
-
-        if (missThreshold <= goodThreshold)
-        {
-            Debug.LogWarning("⚠ Miss閾値はGood閾値より大きくする必要があります。自動修正されました。");
-            missThreshold = goodThreshold + 60;
-        }
+        CheckHeldNotesReleasedEarly();
     }
 
     public void ProcessKeyPress(int noteValue)
     {
-        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming) return;
         if (!notesGenerator.isReady) return;
 
         double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
         double dspTime = GameSceneManager.GetGameDspTime();
-        long currentTick = notesGenerator.GetCurrentTickWithTempo(dspTime);
+        double currentTime = dspTime - notesGenerator.startTime + offsetSec;
 
-        NoteController bestNote = null;
-        long bestTickDifference = long.MaxValue;
+        long currentTick = notesGenerator.GetCurrentTickWithTempo(currentTime);
 
-        foreach (var note in notesGenerator.GetNoteControllers())
+        var notes = notesGenerator.GetNoteControllers();
+        for (int i = 0; i < notes.Count; i++)
         {
+            var note = notes[i];
             if (note.noteValue != noteValue) continue;
 
-            long tickDifference = note.tick - currentTick;
+            long delta = Math.Abs(note.tick - currentTick);
 
-            if (tickDifference >= earlyIgnoreThreshold)
-                continue;
-
-            long absDiff = Math.Abs(tickDifference);
-            if (absDiff < Math.Abs(bestTickDifference))
+            if (delta <= perfectThreshold)
             {
-                bestNote = note;
-                bestTickDifference = tickDifference;
+                if (note.isLongNote)
+                {
+                    heldLongNotes[noteValue] = note;
+                    Debug.Log($"⏳ ホールド開始: Note={noteValue}");
+
+                    // エフェクトとスコアも表示
+                    Vector3 effectPosition = note.transform.position;
+                    OnJudgment?.Invoke("Perfect", effectPosition);
+                    ScoreManager.Instance?.RegisterPerfect();
+                    PhraseManager.Instance?.IncreasePhrase();
+
+                    return;
+                }
+                HandleJudgment("Perfect", note, false);
+                return;
+            }
+            else if (delta <= goodThreshold)
+            {
+                if (note.isLongNote)
+                {
+                    heldLongNotes[noteValue] = note;
+                    Debug.Log($"⏳ ホールド開始 (Good): Note={noteValue}");
+
+                    Vector3 effectPosition = note.transform.position;
+                    OnJudgment?.Invoke("Good", effectPosition);
+                    ScoreManager.Instance?.RegisterGood();
+                    PhraseManager.Instance?.IncreasePhrase();
+
+                    return;
+                }
+                HandleJudgment("Good", note, false);
+                return;
             }
         }
+    }
 
-        if (bestNote == null)
-        {
-            Debug.Log("🟡 判定できるノートが見つかりませんでした（すべて遠すぎ or 判定範囲外）");
-            return;
-        }
+    public void ProcessKeyRelease(int noteValue)
+    {
+        if (!heldLongNotes.ContainsKey(noteValue)) return;
 
-        long tickDifferenceFinal = bestTickDifference;
-        string judgmentResult;
+        var note = heldLongNotes[noteValue];
+        heldLongNotes.Remove(noteValue);
 
-        if (tickDifferenceFinal < -earlyMissThreshold)
+        double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
+        double dspTime = GameSceneManager.GetGameDspTime();
+        double currentTime = dspTime - notesGenerator.startTime + offsetSec;
+        long currentTick = notesGenerator.GetCurrentTickWithTempo(currentTime);
+
+        long delta = Math.Abs(note.endTick - currentTick);
+
+        if (delta <= perfectThreshold)
         {
-            judgmentResult = "Miss";
+            HandleJudgment("Perfect", note, true);
         }
-        else if (tickDifferenceFinal < -perfectThreshold)
+        else if (delta <= goodThreshold)
         {
-            judgmentResult = "Good";
-        }
-        else if (tickDifferenceFinal <= perfectThreshold)
-        {
-            judgmentResult = "Perfect";
-        }
-        else if (tickDifferenceFinal <= goodThreshold)
-        {
-            judgmentResult = "Good";
+            HandleJudgment("Good", note, true);
         }
         else
         {
-            judgmentResult = "Miss";
+            HandleJudgment("Miss", note, true);
         }
+    }
 
-        Debug.Log($"[RESULT] 判定={judgmentResult}, TickDiff={tickDifferenceFinal}");
-
-        notesGenerator.GetNoteControllers().Remove(bestNote);
-        Destroy(bestNote.gameObject);
-        OnJudgment?.Invoke(judgmentResult, bestNote.transform.position);
-
-        // 🎯 スコア・フレーズ通知
-        switch (judgmentResult)
+    private void CheckHeldNotesReleasedEarly()
+    {
+        List<int> releasedKeys = new List<int>();
+        foreach (var pair in heldLongNotes)
         {
-            case "Perfect":
-                ScoreManager.Instance?.RegisterPerfect();
-                PhraseManager.Instance?.IncrementPhrase();
-                break;
-
-            case "Good":
-                ScoreManager.Instance?.RegisterGood();
-                PhraseManager.Instance?.IncrementPhrase();
-                break;
-
-            case "Miss":
-                ScoreManager.Instance?.RegisterMiss();
-                PhraseManager.Instance?.ResetPhrase();
-                break;
+            int noteValue = pair.Key;
+            KeyCode key = GetKeyCodeForNoteValue(noteValue);
+            if (!Input.GetKey(key))
+            {
+                Debug.LogWarning($"⚠️ 早期離し: Note={noteValue}");
+                ProcessKeyRelease(noteValue);
+                releasedKeys.Add(noteValue);
+            }
         }
+
+        foreach (var key in releasedKeys)
+        {
+            heldLongNotes.Remove(key);
+        }
+    }
+
+    private KeyCode GetKeyCodeForNoteValue(int noteValue)
+    {
+        return noteValue switch
+        {
+            60 => KeyCode.S,
+            61 => KeyCode.D,
+            62 => KeyCode.F,
+            63 => KeyCode.J,
+            64 => KeyCode.K,
+            65 => KeyCode.L,
+            _ => KeyCode.None,
+        };
     }
 
     private void AutoMissCheck()
     {
-        if (notesGenerator == null || !notesGenerator.isReady) return;
+        if (!notesGenerator.isReady) return;
 
         double offsetSec = Noteoffset.Instance != null ? Noteoffset.Instance.GetOffset() : 0.0;
-        double dspTime = GameSceneManager.GetGameDspTime() + offsetSec;
-        long currentTick = notesGenerator.GetCurrentTickWithTempo(dspTime);
+        double dspTime = GameSceneManager.GetGameDspTime();
+        double currentTime = dspTime - notesGenerator.startTime + offsetSec;
+
+        long currentTick = notesGenerator.GetCurrentTickWithTempo(currentTime);
 
         var notes = notesGenerator.GetNoteControllers();
         for (int i = notes.Count - 1; i >= 0; i--)
         {
             var note = notes[i];
+
+            if (note.isLongNote && heldLongNotes.ContainsValue(note))
+                continue;
 
             if (note.tick < currentTick - missThreshold)
             {
@@ -145,12 +163,64 @@ public class JudgmentManager : MonoBehaviour
 
                 notes.RemoveAt(i);
                 Destroy(note.gameObject);
-                OnJudgment?.Invoke("Miss", note.transform.position);
 
-                // 🎯 自動ミス処理でも通知
+                if (note.isLongNote && note.endNoteObject != null)
+                {
+                    Destroy(note.endNoteObject);
+                }
+
+                OnJudgment?.Invoke("Miss", note.transform.position);
                 ScoreManager.Instance?.RegisterMiss();
                 PhraseManager.Instance?.ResetPhrase();
             }
+        }
+    }
+
+    private void HandleJudgment(string type, NoteController note, bool isEnd)
+    {
+        if (heldLongNotes.ContainsValue(note))
+        {
+            int keyToRemove = -1;
+            foreach (var pair in heldLongNotes)
+            {
+                if (pair.Value == note)
+                {
+                    keyToRemove = pair.Key;
+                    break;
+                }
+            }
+            if (keyToRemove != -1)
+                heldLongNotes.Remove(keyToRemove);
+        }
+
+        notesGenerator.RemoveNote(note);
+        Destroy(note.gameObject);
+
+        if (isEnd && note.isLongNote && note.endNoteObject != null)
+        {
+            Destroy(note.endNoteObject);
+        }
+
+        Vector3 effectPosition = isEnd && note.isLongNote && note.endNoteObject != null
+            ? note.endNoteObject.transform.position
+            : note.transform.position;
+
+        OnJudgment?.Invoke(type, effectPosition);
+
+        switch (type)
+        {
+            case "Perfect":
+                ScoreManager.Instance?.RegisterPerfect();
+                PhraseManager.Instance?.IncreasePhrase();
+                break;
+            case "Good":
+                ScoreManager.Instance?.RegisterGood();
+                PhraseManager.Instance?.IncreasePhrase();
+                break;
+            case "Miss":
+                ScoreManager.Instance?.RegisterMiss();
+                PhraseManager.Instance?.ResetPhrase();
+                break;
         }
     }
 }

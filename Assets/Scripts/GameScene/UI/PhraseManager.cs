@@ -25,10 +25,19 @@ public class PhraseManager : MonoBehaviour
     {
         currentPhrase++;
         if (currentPhrase > maxPhrase)
-        maxPhrase = currentPhrase;
+            maxPhrase = currentPhrase;
 
         UpdatePhraseDisplay();
     }
+
+    /// <summary>
+    /// 成功時に呼び出し：Phrase加算（JudgmentManager旧コード互換）
+    /// </summary>
+    public void IncreasePhrase()
+    {
+        IncrementPhrase();
+    }
+
     /// <summary>
     /// ミス時またはリセット時に呼び出し：Phraseリセット
     /// </summary>
@@ -54,8 +63,8 @@ public class PhraseManager : MonoBehaviour
         return currentPhrase;
     }
 
-public int GetMaxPhrase()
-{
-    return maxPhrase;
-}
+    public int GetMaxPhrase()
+    {
+        return maxPhrase;
+    }
 }

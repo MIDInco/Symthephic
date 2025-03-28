@@ -4,51 +4,74 @@ public class KeyInputHandler : MonoBehaviour
 {
     public JudgmentManager judgmentManager; // 修正: JudgmentManager に処理を送る
 
-void Update()
-{
-    if (Input.GetKeyDown(KeyCode.S)) RegisterKeyPress(60);
-    if (Input.GetKeyDown(KeyCode.D)) RegisterKeyPress(61);
-    if (Input.GetKeyDown(KeyCode.F)) RegisterKeyPress(62);
-    if (Input.GetKeyDown(KeyCode.J)) RegisterKeyPress(63);
-    if (Input.GetKeyDown(KeyCode.K)) RegisterKeyPress(64);
-    if (Input.GetKeyDown(KeyCode.L)) RegisterKeyPress(65);
-
-    if (Input.GetKeyDown(KeyCode.Escape))
+    void Update()
     {
-        HandlePauseToggle();
-    }
-}
+        if (Input.GetKeyDown(KeyCode.S)) RegisterKeyPress(60);
+        if (Input.GetKeyDown(KeyCode.D)) RegisterKeyPress(61);
+        if (Input.GetKeyDown(KeyCode.F)) RegisterKeyPress(62);
+        if (Input.GetKeyDown(KeyCode.J)) RegisterKeyPress(63);
+        if (Input.GetKeyDown(KeyCode.K)) RegisterKeyPress(64);
+        if (Input.GetKeyDown(KeyCode.L)) RegisterKeyPress(65);
 
-void RegisterKeyPress(int noteValue)
-{
-    if (GameSceneManager.IsPaused || GameSceneManager.IsResuming)
-        return;
+        if (Input.GetKeyUp(KeyCode.S)) RegisterKeyRelease(60);
+        if (Input.GetKeyUp(KeyCode.D)) RegisterKeyRelease(61);
+        if (Input.GetKeyUp(KeyCode.F)) RegisterKeyRelease(62);
+        if (Input.GetKeyUp(KeyCode.J)) RegisterKeyRelease(63);
+        if (Input.GetKeyUp(KeyCode.K)) RegisterKeyRelease(64);
+        if (Input.GetKeyUp(KeyCode.L)) RegisterKeyRelease(65);
 
-    if (judgmentManager != null)
-    {
-        judgmentManager.ProcessKeyPress(noteValue);
-        Debug.Log($"Key Pressed: Note {noteValue}");
-    }
-    else
-    {
-        Debug.LogError("❌ JudgmentManager が設定されていません！");
-    }
-}
-
-void HandlePauseToggle()
-{
-    if (GameSceneManager.Instance == null) return;
-
-    PauseManager pauseManager = FindAnyObjectByType<PauseManager>();
-    if (pauseManager == null)
-    {
-        Debug.LogWarning("❌ PauseManager が見つかりません！");
-        return;
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HandlePauseToggle();
+        }
     }
 
-    if (GameSceneManager.IsPaused)
-        pauseManager.Resume(); // ✅ UIを閉じてからResume処理
-    else
-        GameSceneManager.Instance.PauseGame(); // ✅ Pause中にUIを出すのはGameSceneManager経由でPauseManagerが行っている
-}
+    void RegisterKeyPress(int noteValue)
+    {
+        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming)
+            return;
+
+        if (judgmentManager != null)
+        {
+            judgmentManager.ProcessKeyPress(noteValue);
+            Debug.Log($"Key Pressed: Note {noteValue}");
+        }
+        else
+        {
+            Debug.LogError("❌ JudgmentManager が設定されていません！");
+        }
+    }
+
+    void RegisterKeyRelease(int noteValue)
+    {
+        if (GameSceneManager.IsPaused || GameSceneManager.IsResuming)
+            return;
+
+        if (judgmentManager != null)
+        {
+            judgmentManager.ProcessKeyRelease(noteValue);
+            Debug.Log($"Key Released: Note {noteValue}");
+        }
+        else
+        {
+            Debug.LogError("❌ JudgmentManager が設定されていません！");
+        }
+    }
+
+    void HandlePauseToggle()
+    {
+        if (GameSceneManager.Instance == null) return;
+
+        PauseManager pauseManager = FindAnyObjectByType<PauseManager>();
+        if (pauseManager == null)
+        {
+            Debug.LogWarning("❌ PauseManager が見つかりません！");
+            return;
+        }
+
+        if (GameSceneManager.IsPaused)
+            pauseManager.Resume();
+        else
+            GameSceneManager.Instance.PauseGame();
+    }
 }

@@ -10,18 +10,24 @@ public class Judgment_Effects : MonoBehaviour
     public ParticleSystem goodEffect;
     public ParticleSystem missEffect;
 
+    private JudgmentManager manager;
+
     public bool useParticleEffects = false; // 切り替え用
     [SerializeField] private float effectYPosition = -10f; // インスペクタから設定可能
 
-    void Start()
-    {
-        JudgmentManager.OnJudgment += PlayEffect;
-    }
+void Start()
+{
+    manager = FindFirstObjectByType<JudgmentManager>();
+    if (manager != null)
+        manager.OnJudgment += PlayEffect;
+}
 
-    void OnDestroy()
-    {
-        JudgmentManager.OnJudgment -= PlayEffect;
-    }
+
+void OnDestroy()
+{
+    if (manager != null)
+        manager.OnJudgment -= PlayEffect;
+}
 
     void PlayEffect(string judgment, Vector3 position)
     {
