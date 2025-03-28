@@ -27,6 +27,11 @@ public class NoteController : MonoBehaviour
         initialPosition = transform.position;
     }
 
+    public GameObject GetBodyInstance()
+    {
+        return bodyInstance;
+    }
+
     public void SetEndNoteObject(GameObject endObj)
     {
         endNoteObject = endObj;

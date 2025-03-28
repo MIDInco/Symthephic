@@ -159,16 +159,7 @@ public class JudgmentManager : MonoBehaviour
                 Debug.Log($"❌ AutoMiss - ノートを逃しました (Note={note.noteValue}, Tick={note.tick}, 遅れ={note.tick - currentTick})");
 
                 notes.RemoveAt(i);
-                if (note.isLongNote)
-                {
-                    if (note.endNoteObject != null) Destroy(note.endNoteObject);
-                    Transform parent = note.transform.parent;
-                    if (parent != null)
-                    {
-                        var body = parent.Find($"LongBody_{note.uniqueID}");
-                        if (body != null) Destroy(body.gameObject);
-                    }
-                }
+                HandleLongNoteVisualRemoval(note); // ✅ 統一関数で削除処理
                 Destroy(note.gameObject);
 
                 OnJudgment?.Invoke("Miss", note.transform.position);
@@ -197,15 +188,9 @@ public class JudgmentManager : MonoBehaviour
 
         notesGenerator.RemoveNote(note);
 
-        if (note.isLongNote)
+        if (note.isLongNote && isEnd)
         {
-            if (note.endNoteObject != null) Destroy(note.endNoteObject);
-            Transform parent = note.transform.parent;
-            if (parent != null)
-            {
-                var body = parent.Find($"LongBody_{note.uniqueID}");
-                if (body != null) Destroy(body.gameObject);
-            }
+            HandleLongNoteVisualRemoval(note); // ✅ 統一関数で削除処理
         }
 
         Destroy(note.gameObject);
@@ -232,4 +217,20 @@ public class JudgmentManager : MonoBehaviour
                 break;
         }
     }
+
+private void HandleLongNoteVisualRemoval(NoteController note)
+{
+    if (note.endNoteObject != null)
+    {
+        Destroy(note.endNoteObject);
+        Debug.Log($"🟨 EndNote 削除: {note.endNoteObject.name}");
+    }
+
+    var body = note.GetBodyInstance();
+    if (body != null)
+    {
+        Destroy(body);
+        Debug.Log($"🟧 Body 削除: {body.name}");
+    }
+}
 }

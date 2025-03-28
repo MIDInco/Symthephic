@@ -11,7 +11,7 @@ public class NotesGenerator : MonoBehaviour
 {
     public GameObject Notes;
     public GameObject LongNoteEnd;
-    public GameObject LongNoteBodyPrefab; // 追加：帯プレハブ
+    public GameObject LongNoteBodyPrefab;
     public Transform spawnPoint;
     public float noteSpeed = 1f;
 
@@ -40,10 +40,9 @@ public class NotesGenerator : MonoBehaviour
     void Start()
     {
         if (MusicManager.SelectedMusic != null)
-        {
             Debug.Log($"🎯 NotesGenerator: 選択されたMIDIを受け取りました → {MusicManager.SelectedMusic.MidiFileName}");
-        }
-        else Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
+        else
+            Debug.LogError("❌ GameScene に MIDI データが渡っていません！");
     }
 
     void Update()
@@ -79,17 +78,18 @@ public class NotesGenerator : MonoBehaviour
         BPM = (float)midiFilePlayer.MPTK_Tempo;
 
         CacheTempoEvents(midiLoad);
-        GenerateNotes(midiLoad);
-        ScoreManager.Instance?.SetTotalNotes(noteControllers.Count);
+        int totalScorableNotes = GenerateNotes(midiLoad);
+        ScoreManager.Instance?.SetTotalNotes(totalScorableNotes);
 
         startTime = AudioSettings.dspTime + (Noteoffset.Instance?.GetChartDelay() ?? 0f);
-        Debug.Log($"✅ NotesGenerator: isReady を true に設定しました（譜面再生準備完了）");
+        Debug.Log("✅ NotesGenerator: isReady を true に設定しました（譜面再生準備完了）");
     }
 
-    void GenerateNotes(MidiLoad midiLoad)
+    int GenerateNotes(MidiLoad midiLoad)
     {
         var events = midiLoad.MPTK_MidiEvents;
         int globalIndex = 0;
+        int scoreNoteCount = 0;
 
         Dictionary<int, Stack<MPTKEvent>> noteOnStacks = new();
 
@@ -99,7 +99,6 @@ public class NotesGenerator : MonoBehaviour
             {
                 if (!noteOnStacks.ContainsKey(ev.Value))
                     noteOnStacks[ev.Value] = new Stack<MPTKEvent>();
-
                 noteOnStacks[ev.Value].Push(ev);
             }
             else if ((ev.Command == MPTKCommand.NoteOff || (ev.Command == MPTKCommand.NoteOn && ev.Velocity == 0)))
@@ -108,7 +107,6 @@ public class NotesGenerator : MonoBehaviour
                 {
                     var noteOn = noteOnStacks[ev.Value].Pop();
                     long duration = ev.Tick - noteOn.Tick;
-
                     bool isLong = duration >= TPQN / 2;
 
                     double noteTime = GetTimeFromTick(noteOn.Tick);
@@ -155,14 +153,11 @@ public class NotesGenerator : MonoBehaviour
                     noteControllers.Add(controller);
                     OnNoteGenerated?.Invoke(controller);
 
-                    // ✅ デバッグログ追加
-                    if (controller.isLongNote)
-                    {
-                    Debug.Log($"🟦 ロングノーツ生成: ID={id}, ノート番号={noteOn.Value}, BodyPrefab={(controller.bodyPrefab != null)}, EndNote={(endNote != null)}");
-                    }
+                    scoreNoteCount += isLong ? 2 : 1;
                 }
             }
         }
+        return scoreNoteCount;
     }
 
     double GetTimeFromTick(long tick)
@@ -210,16 +205,16 @@ public class NotesGenerator : MonoBehaviour
 
     public float GetFixedXPosition(int noteValue)
     {
-        switch (noteValue)
+        return noteValue switch
         {
-            case 60: return -2.5f;
-            case 61: return -1.5f;
-            case 62: return -0.5f;
-            case 63: return  0.5f;
-            case 64: return  1.5f;
-            case 65: return  2.5f;
-            default: return 0f;
-        }
+            60 => -2.5f,
+            61 => -1.5f,
+            62 => -0.5f,
+            63 =>  0.5f,
+            64 =>  1.5f,
+            65 =>  2.5f,
+            _ => 0f,
+        };
     }
 
     public List<NoteController> GetNoteControllers() => noteControllers;
