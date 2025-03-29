@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 40329bccc3a76d24aae79d2e4f06cf02
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 249140
+  packageName: 'Ninja Profiler: Performance Optimization and Performance Profiler'
+  packageVersion: 2.0.0
+  assetPath: Packages/com.occasoftware.ninja/Runtime/Ninja.cs
+  uploadId: 633823

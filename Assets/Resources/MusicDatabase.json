@@ -31,20 +31,30 @@
     },
 
     {
+      "MidiFileName": "0005_Kousou_Hard",
+      "DisplayName": "鏗鏘",
+      "AudioFileName": "kousou.wav",
+      "IsDLC": false,
+      "DLCId": ""
+    },
+
+    {
       "MidiFileName": "0007_Piano Concerto No.1 in Fis moll_Hard",
-      "DisplayName": "Piano Concerto No.1 in Fis",
+      "DisplayName": "Piano Concerto No.1 in Fis moll",
       "AudioFileName": "0007_Piano Concerto No.1 in Fis moll.wav",
       "IsDLC": false,
       "DLCId": ""
     },
 
     {
-      "MidiFileName": "0005_Kousou",
-      "DisplayName": "鏗鏘",
-      "AudioFileName": "kousou.wav",
+      "MidiFileName": "0009_20220629_Hard",
+      "DisplayName": "20220629",
+      "AudioFileName": "0009_20220629.wav",
       "IsDLC": false,
       "DLCId": ""
     }
+
+
   ]
 
   
