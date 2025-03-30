@@ -222,74 +222,58 @@ public class NotesGenerator : MonoBehaviour
     }
 
     // ノーツオブジェクトを生成・初期化する
-    void InstantiateNote(MPTKEvent noteOn, MPTKEvent noteOff, double generationTime) // generationTime を引数に追加
+void InstantiateNote(MPTKEvent noteOn, MPTKEvent noteOff, double generationTime)
+{
+    long durationTicks = noteOff.Tick - noteOn.Tick;
+    bool isLong = durationTicks >= TPQN / 2;
+
+    double noteOnTime = GetTimeFromTick(noteOn.Tick);
+    double noteOffTime = GetTimeFromTick(noteOff.Tick);
+    float startX = GetFixedXPosition(noteOn.Value);
+    float judgmentLineZ = judgmentLine != null ? judgmentLine.position.z : 0f;
+    float timeToJudgeAtGeneration = (float)(noteOnTime - generationTime);
+    float initialZ = judgmentLineZ + timeToJudgeAtGeneration * noteSpeed;
+
+    // 🔷 制御用のNoteRootオブジェクト（NoteControllerアタッチ用）
+    GameObject noteRoot = new GameObject($"Note_{noteOn.Value}_{noteOn.Tick}");
+    noteRoot.transform.position = new Vector3(startX, spawnPoint.position.y, initialZ);
+    noteRoot.transform.rotation = Quaternion.identity;
+
+    // 🔷 Headオブジェクト（見た目専用）
+    GameObject head = Instantiate(Notes);
+    head.transform.SetParent(noteRoot.transform);
+    head.transform.localPosition = Vector3.zero;
+    head.SetActive(true);
+
+    // 🔷 EndNoteオブジェクト（ロングノーツのみ）
+    GameObject endNoteObject = null;
+    if (isLong && LongNoteEnd != null)
     {
-        long durationTicks = noteOff.Tick - noteOn.Tick;
-        // 8分音符以上のTick数 (TPQN / 2) を基準にロングノーツを判定
-        bool isLong = durationTicks >= TPQN / 2;
+        float timeToEndJudgeAtGeneration = (float)(noteOffTime - generationTime);
+        float endInitialZ = judgmentLineZ + timeToEndJudgeAtGeneration * noteSpeed;
 
-        double noteOnTime = GetTimeFromTick(noteOn.Tick);
-        double noteOffTime = GetTimeFromTick(noteOff.Tick);
-
-        // ノーツの初期位置計算
-        float startX = GetFixedXPosition(noteOn.Value);
-
-        // 生成時の正しいZ座標を計算する
-        // 判定ラインZ座標を 0 とする (judgmentLine.position.z を使うのがより正確)
-        float जजमेंटLineZ = judgmentLine != null ? judgmentLine.position.z : 0f;
-        // noteOnTime は startTime からの相対時間
-        // generationTime も startTime からの相対時間
-        float timeToJudgeAtGeneration = (float)(noteOnTime - generationTime);
-        float initialZ = जजमेंटLineZ + timeToJudgeAtGeneration * noteSpeed;
-
-
-        // ノーツ(始点)オブジェクト生成
-        GameObject noteObject = Instantiate(Notes);
-        noteObject.transform.position = new Vector3(startX, spawnPoint.position.y, initialZ);
-        noteObject.transform.rotation = Quaternion.identity;
-        // noteObject.transform.SetParent(null); // Instantiate時に親なしで生成されるはず
-        noteObject.SetActive(true);
-
-        // ロングノーツ終点オブジェクト生成
-        GameObject endNoteObject = null;
-        if (isLong && LongNoteEnd != null)
-        {
-            // 終点の初期Z座標も同様に計算
-            float timeToEndJudgeAtGeneration = (float)(noteOffTime - generationTime);
-            float endInitialZ = जजमेंटLineZ + timeToEndJudgeAtGeneration * noteSpeed;
-
-            endNoteObject = Instantiate(LongNoteEnd);
-            endNoteObject.transform.position = new Vector3(startX, spawnPoint.position.y, endInitialZ);
-            endNoteObject.transform.rotation = Quaternion.identity;
-            // endNoteObject.transform.SetParent(null);
-            endNoteObject.SetActive(true);
-        }
-
-        // NoteControllerを取得して初期化
-        NoteController controller = noteObject.GetComponent<NoteController>();
-        if (controller != null)
-        {
-            string id = $"{noteOn.Value}_{noteOn.Tick}"; // よりユニークなIDに変更
-            controller.Initialize(noteOnTime, this, id); // noteOnTime は startTime からの相対時間
-            controller.noteValue = noteOn.Value;
-            controller.tick = noteOn.Tick;
-            controller.isLongNote = isLong;
-            controller.endTick = noteOff.Tick;
-            controller.endTime = noteOffTime; // noteOffTime は startTime からの相対時間
-            controller.bodyPrefab = LongNoteBodyPrefab;
-            controller.SetEndNoteObject(endNoteObject); // 終点オブジェクトを設定
-
-            noteControllers.Add(controller); // 管理リストに追加
-            OnNoteGenerated?.Invoke(controller); // 生成イベントを発火
-            // Debug.Log($"Generated Note: {id}, Time: {noteOnTime:F3}, PosZ: {initialZ:F2}");
-        }
-        else
-        {
-            Debug.LogError($"❌ Prefab '{Notes.name}' に NoteController コンポーネントがありません！");
-            Destroy(noteObject); // 不正なオブジェクトは破棄
-            if (endNoteObject != null) Destroy(endNoteObject);
-        }
+        endNoteObject = Instantiate(LongNoteEnd);
+        endNoteObject.transform.position = new Vector3(startX, spawnPoint.position.y, endInitialZ);
+        endNoteObject.transform.rotation = Quaternion.identity;
+        endNoteObject.SetActive(true);
     }
+
+    // 🔷 NoteController追加と初期化
+    NoteController controller = noteRoot.AddComponent<NoteController>();
+    string id = $"{noteOn.Value}_{noteOn.Tick}";
+    controller.Initialize(noteOnTime, this, id);
+    controller.noteValue = noteOn.Value;
+    controller.tick = noteOn.Tick;
+    controller.isLongNote = isLong;
+    controller.endTick = noteOff.Tick;
+    controller.endTime = noteOffTime;
+    controller.bodyPrefab = LongNoteBodyPrefab;
+    controller.SetEndNoteObject(endNoteObject);
+    controller.headObject = head; // 🆕 Head登録
+
+    noteControllers.Add(controller);
+    OnNoteGenerated?.Invoke(controller);
+}
 
 
     // Tick値からゲーム内時間（startTimeからの経過秒数）を取得
